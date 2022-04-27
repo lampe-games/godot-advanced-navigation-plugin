@@ -1,6 +1,6 @@
 [submodule "godot-cpp"]
-	path = godot-cpp
+	path = thirdparty/godot-cpp
 	url = git@github.com:godotengine/godot-cpp.git
 [submodule "recastnavigation"]
-	path = recastnavigation
+	path = thirdparty/recastnavigation
 	url = git@github.com:recastnavigation/recastnavigation.git
