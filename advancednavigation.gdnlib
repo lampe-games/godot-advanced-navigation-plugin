@@ -1,0 +1,16 @@
+[general]
+
+singleton=false
+load_once=true
+symbol_prefix="godot_"
+reloadable=false
+
+[entry]
+
+X11.64="res://addons/godot-advanced-navigation-plugin/bin/x11/libadvancednavigation.so"
+Windows.64="res://addons/godot-advanced-navigation-plugin/bin/win64/libadvancednavigation.dll"
+
+[dependencies]
+
+X11.64=[  ]
+Windows.64=[  ]
