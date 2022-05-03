@@ -15,9 +15,13 @@ class AdvancedNavigationMesh3D : public Spatial
   void _ready();
   void _process();
 
+  void bake();
+
   static void _register_methods()
   {
     register_method("_ready", &AdvancedNavigationMesh3D::_ready);
     register_method("_process", &AdvancedNavigationMesh3D::_process);
+
+    register_method("bake", &AdvancedNavigationMesh3D::bake);
   }
 };
