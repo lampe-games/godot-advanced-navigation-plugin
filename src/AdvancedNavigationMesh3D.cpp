@@ -1,5 +1,7 @@
 #include "AdvancedNavigationMesh3D.hpp"
 
+#include <string>
+
 #include <Engine.hpp>
 #include <MeshInstance.hpp>
 #include <PlaneMesh.hpp>
@@ -13,9 +15,11 @@ void AdvancedNavigationMesh3D::_init()
 void AdvancedNavigationMesh3D::_ready()
 {
   Godot::print("AdvancedNavigationMesh3D::_ready()");
+  Godot::print(String("AdvancedNavigationMesh3D::baked ") + String(std::to_string(baked).c_str()));
   if (get_tree()->is_debugging_navigation_hint() || Engine::get_singleton()->is_editor_hint())
   {
     create_debug_mesh_instance();
+    update_debug_mesh_instance(load_debug_mesh());
   }
 }
 
@@ -31,6 +35,7 @@ void AdvancedNavigationMesh3D::bake()
   if (get_tree()->is_debugging_navigation_hint() || Engine::get_singleton()->is_editor_hint())
   {
     update_debug_mesh_instance(create_debug_mesh());
+    baked = true;
   }
 }
 
@@ -40,6 +45,7 @@ void AdvancedNavigationMesh3D::clear()
   if (get_tree()->is_debugging_navigation_hint() || Engine::get_singleton()->is_editor_hint())
   {
     update_debug_mesh_instance(Ref<Mesh>());
+    baked = false;
   }
 }
 
@@ -60,6 +66,11 @@ void AdvancedNavigationMesh3D::update_debug_mesh_instance(Ref<Mesh> mesh)
 Ref<Mesh> AdvancedNavigationMesh3D::create_debug_mesh()
 {
   return PlaneMesh::_new();
+}
+
+Ref<Mesh> AdvancedNavigationMesh3D::load_debug_mesh()
+{
+  return baked ? PlaneMesh::_new() : nullptr;
 }
 
 Ref<Material> AdvancedNavigationMesh3D::create_debug_mesh_instance_material()
