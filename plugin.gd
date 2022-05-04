@@ -41,5 +41,8 @@ func handles(object):
 
 
 func _on_navigation_mesh_menu_id_pressed(id):
-	if id == BAKE_METHOD_ID:
-		_selected_navigation_mesh.bake()
+	match id:
+		BAKE_METHOD_ID:
+			_selected_navigation_mesh.bake()
+		CLEAR_METHOD_ID:
+			_selected_navigation_mesh.clear()
