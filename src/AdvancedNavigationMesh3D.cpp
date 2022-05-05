@@ -6,6 +6,9 @@
 #include <MeshInstance.hpp>
 #include <PlaneMesh.hpp>
 #include <SceneTree.hpp>
+#include <Viewport.hpp>
+
+#include "AdvancedNavigationServer3D.hpp"
 
 void AdvancedNavigationMesh3D::_init()
 {
@@ -21,12 +24,6 @@ void AdvancedNavigationMesh3D::_ready()
     create_debug_mesh_instance();
     update_debug_mesh_instance(load_debug_mesh());
   }
-}
-
-void AdvancedNavigationMesh3D::_process()
-{
-  Godot::print("AdvancedNavigationMesh3D::_process()");
-  set_process(false);
 }
 
 void AdvancedNavigationMesh3D::bake()
@@ -65,12 +62,28 @@ void AdvancedNavigationMesh3D::update_debug_mesh_instance(Ref<Mesh> mesh)
 
 Ref<Mesh> AdvancedNavigationMesh3D::create_debug_mesh()
 {
-  return PlaneMesh::_new();
+  auto* server =
+      get_tree()->get_root()->get_node<AdvancedNavigationServer3D>("AdvancedNavigationServer3D");
+  if (server)
+  {
+    return server->build_navigation_mesh();
+  }
+  return nullptr;
 }
 
 Ref<Mesh> AdvancedNavigationMesh3D::load_debug_mesh()
 {
-  return baked ? PlaneMesh::_new() : nullptr;
+  if (not baked)
+  {
+    return nullptr;
+  }
+  auto* server =
+      get_tree()->get_root()->get_node<AdvancedNavigationServer3D>("AdvancedNavigationServer3D");
+  if (server)
+  {
+    return server->build_navigation_mesh();
+  }
+  return nullptr;
 }
 
 Ref<Material> AdvancedNavigationMesh3D::create_debug_mesh_instance_material()

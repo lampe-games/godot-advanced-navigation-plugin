@@ -9,6 +9,10 @@ var _selected_navigation_mesh = null
 
 
 func _enter_tree():
+	add_autoload_singleton(
+		"AdvancedNavigationServer3D",
+		"res://addons/godot-advanced-navigation-plugin/nodes/AdvancedNavigationServer3D.gdns"
+	)
 	add_custom_type(
 		"AdvancedNavigationMesh3D",
 		"Spatial",

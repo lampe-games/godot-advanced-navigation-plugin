@@ -1,3 +1,5 @@
+#pragma once
+
 #include <Godot.hpp>
 #include <Material.hpp>
 #include <MeshInstance.hpp>
@@ -12,11 +14,8 @@ class AdvancedNavigationMesh3D : public Spatial
   GODOT_CLASS(AdvancedNavigationMesh3D, Spatial);
 
  public:
-  AdvancedNavigationMesh3D() {}
-
   void _init(); // `_init` must exist as it is called by Godot.
   void _ready();
-  void _process();
 
   void bake();
   void clear();
@@ -24,7 +23,6 @@ class AdvancedNavigationMesh3D : public Spatial
   static void _register_methods()
   {
     register_method("_ready", &AdvancedNavigationMesh3D::_ready);
-    register_method("_process", &AdvancedNavigationMesh3D::_process);
 
     register_method("bake", &AdvancedNavigationMesh3D::bake);
     register_method("clear", &AdvancedNavigationMesh3D::clear);
