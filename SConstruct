@@ -74,13 +74,16 @@ env.Append(
         cpp_bindings_path + "include/",
         cpp_bindings_path + "include/core/",
         cpp_bindings_path + "include/gen/",
+        "thirdparty/recastnavigation/Recast/Include/",
     ]
 )
 env.Append(LIBPATH=[cpp_bindings_path + "bin/"])
 env.Append(LIBS=[cpp_library])
 env.Append(CPPPATH=[sources_path])
 
-sources = Glob("{}/*.cpp".format(sources_path))
+sources = Glob("{}/*.cpp".format(sources_path)) + Glob(
+    "{}/*.cpp".format("thirdparty/recastnavigation/Recast/Source/")
+)
 library = env.SharedLibrary(
     target=env["target_path"] + env["target_name"], source=sources
 )

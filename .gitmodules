@@ -4,3 +4,4 @@
 [submodule "recastnavigation"]
 	path = thirdparty/recastnavigation
 	url = git@github.com:recastnavigation/recastnavigation.git
+        ignore = dirty

@@ -14,7 +14,7 @@ class AdvancedNavigationMesh3D : public Spatial
   GODOT_CLASS(AdvancedNavigationMesh3D, Spatial);
 
  public:
-  void _init(); // `_init` must exist as it is called by Godot.
+  void _init();
   void _ready();
 
   void bake();
