@@ -37,7 +37,7 @@ elif env["platform"] in ("x11", "linux"):
     env["target_path"] += "x11/"
     cpp_library += ".linux"
     env.Append(CCFLAGS=["-fPIC"])
-    env.Append(CXXFLAGS=["-std=c++17"])
+    env.Append(CXXFLAGS=["-std=c++17", "-Wall"])
     if env["target"] in ("debug", "d"):
         env.Append(CCFLAGS=["-g3", "-Og"])
     else:

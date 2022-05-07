@@ -40,7 +40,7 @@ bool RecastPolygonMesh::build_from_triangles(PoolVector3Array& vertices, PoolInt
   const int vertices_num = vertices.size();
   float raw_vertices[vertices_num * 3] = {0};
   PoolVector3Array::Read vertices_reader = vertices.read();
-  for (unsigned vertex_index = 0; vertex_index < vertices_num; vertex_index++)
+  for (int vertex_index = 0; vertex_index < vertices_num; vertex_index++)
   {
     raw_vertices[vertex_index * 3 + 0] = vertices_reader[vertex_index].x;
     raw_vertices[vertex_index * 3 + 1] = vertices_reader[vertex_index].y;
@@ -51,7 +51,7 @@ bool RecastPolygonMesh::build_from_triangles(PoolVector3Array& vertices, PoolInt
   int raw_indices[indices.size()] = {0};
   const int triangles_num = indices.size() / 3;
   PoolIntArray::Read indices_reader = indices.read();
-  for (unsigned triangle_index = 0; triangle_index < triangles_num; triangle_index++)
+  for (int triangle_index = 0; triangle_index < triangles_num; triangle_index++)
   {
     raw_indices[triangle_index * 3 + 0] = indices_reader[triangle_index * 3 + 0];
     raw_indices[triangle_index * 3 + 1] = indices_reader[triangle_index * 3 + 2];
@@ -324,15 +324,16 @@ Ref<Mesh> RecastPolygonMesh::get_poly_mesh() const
     return nullptr;
   }
 
+  // TODO: make mesh out of n-vert polygons
+
   const float cs = poly_mesh.cs;
   const float ch = poly_mesh.ch;
   const float* orig = poly_mesh.bmin;
-  for (unsigned polygon_index = 0; polygon_index < poly_mesh.npolys; ++polygon_index)
+  for (int polygon_index = 0; polygon_index < poly_mesh.npolys; ++polygon_index)
   {
     const unsigned short* p = &poly_mesh.polys[polygon_index * poly_mesh.nvp * 2];
 
     // Iterate the vertices.
-    unsigned short vi[3]; // The vertex indices.
     for (int j = 0; j < nvp; ++j)
     {
       if (p[j] == RC_MESH_NULL_IDX)
@@ -358,7 +359,7 @@ Ref<Mesh> RecastPolygonMesh::get_poly_mesh() const
       // Do something with the vertices.
     }
   }
-  for (unsigned triangle_index = 0; triangle_index < indices.size() / 3; triangle_index++)
+  for (int triangle_index = 0; triangle_index < indices.size() / 3; triangle_index++)
   {
     int tmp = indices[triangle_index * 3 + 1];
     indices.set(triangle_index * 3 + 1, indices[triangle_index * 3 + 2]);
