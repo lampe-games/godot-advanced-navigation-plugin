@@ -4,6 +4,10 @@
 
 #include <ArrayMesh.hpp>
 
+#include "RecastContext.hpp"
+
+// #define DEBUG_LOGS
+
 using namespace godot;
 
 RecastPolygonMesh::RecastPolygonMesh()
@@ -21,84 +25,54 @@ void RecastPolygonMesh::_init()
   Godot::print("RecastPolygonMesh::_init()");
 }
 
-class RecastContext : public rcContext
+bool RecastPolygonMesh::build_from_plane_mesh(Ref<PlaneMesh> plane_mesh)
 {
- public:
-  void doLog(const rcLogCategory /*category*/, const char* msg, const int /*len*/)
-  {
-    Godot::print("RecastContext::doLog(): {0}", msg);
-  }
-  // void doStartTimer(const rcTimerLabel label) {
-  //   Godot::print("RecastContext::doStartTimer() {0}", label);
-  // }
-  // void doStopTimer(const rcTimerLabel label) {
-  //   Godot::print("RecastContext::doStartTimer() {0}", label);
-  // }
-};
-
-void RecastPolygonMesh::build_from_plane_mesh(Ref<PlaneMesh> plane_mesh)
-{
-  Godot::print("RecastPolygonMesh::build_from_plane_mesh()");
-
   Array mesh_arrays = plane_mesh->get_mesh_arrays();
-  PoolVector3Array mesh_vertices = mesh_arrays[Mesh::ARRAY_VERTEX];
-  PoolVector3Array::Read xvertices = mesh_vertices.read();
-  PoolIntArray mesh_indices = mesh_arrays[Mesh::ARRAY_INDEX];
-  PoolIntArray::Read indices = mesh_indices.read();
+  // TODO: ensure no copy
+  PoolVector3Array triangle_vertices = mesh_arrays[Mesh::ARRAY_VERTEX];
+  PoolIntArray triangle_indices = mesh_arrays[Mesh::ARRAY_INDEX];
+  return build_from_triangles(triangle_vertices, triangle_indices);
+}
 
-  const int vertices_num = mesh_vertices.size();
-  float vertices[vertices_num * 3] = {0};
-  unsigned nextNewVertexIndex = 0;
-  for (unsigned vertexIndex = 0; vertexIndex < vertices_num; vertexIndex++)
+bool RecastPolygonMesh::build_from_triangles(PoolVector3Array& vertices, PoolIntArray& indices)
+{
+  // unpack Vector3s into flat floats
+  const int vertices_num = vertices.size();
+  float raw_vertices[vertices_num * 3] = {0};
+  PoolVector3Array::Read vertices_reader = vertices.read();
+  for (unsigned vertex_index = 0; vertex_index < vertices_num; vertex_index++)
   {
-    vertices[nextNewVertexIndex++] = xvertices[vertexIndex].x;
-    vertices[nextNewVertexIndex++] = xvertices[vertexIndex].y;
-    vertices[nextNewVertexIndex++] = xvertices[vertexIndex].z;
+    raw_vertices[vertex_index * 3 + 0] = vertices_reader[vertex_index].x;
+    raw_vertices[vertex_index * 3 + 1] = vertices_reader[vertex_index].y;
+    raw_vertices[vertex_index * 3 + 2] = vertices_reader[vertex_index].z;
   }
-  const int triangles_num = mesh_indices.size() / 3;
-  PoolIntArray reordered_mesh_indices;
-  for (unsigned indexIndex = 0; indexIndex < mesh_indices.size() / 3; indexIndex++)
+
+  // reorder ABC triangles into ACB ones for godot-recast compatibility
+  int raw_indices[indices.size()] = {0};
+  const int triangles_num = indices.size() / 3;
+  PoolIntArray::Read indices_reader = indices.read();
+  for (unsigned triangle_index = 0; triangle_index < triangles_num; triangle_index++)
   {
-    reordered_mesh_indices.append(indices[indexIndex * 3 + 0]);
-    reordered_mesh_indices.append(indices[indexIndex * 3 + 2]);
-    reordered_mesh_indices.append(indices[indexIndex * 3 + 1]);
+    raw_indices[triangle_index * 3 + 0] = indices_reader[triangle_index * 3 + 0];
+    raw_indices[triangle_index * 3 + 1] = indices_reader[triangle_index * 3 + 2];
+    raw_indices[triangle_index * 3 + 2] = indices_reader[triangle_index * 3 + 1];
   }
-  PoolIntArray::Read reordered_indices = reordered_mesh_indices.read();
-  // const int* triangles = reordered_indices.ptr();
-  const int* triangles = reordered_indices.ptr();
+
+  return build_from_raw_triangles(raw_vertices, vertices_num, raw_indices, triangles_num);
+}
+
+bool RecastPolygonMesh::build_from_raw_triangles(
+    const float* vertices,
+    const int vertices_num,
+    const int* triangles,
+    const int triangles_num)
+{
+#ifdef DEBUG_LOGS
   Godot::print(
-      "RecastPolygonMesh::build_from_plane_mesh() vertices: {0}, indices: {1}, rindices: {2}, {3}, "
-      "{4}, {5}",
-      mesh_vertices.size(),
-      mesh_indices.size(),
-      reordered_mesh_indices.size(),
-      mesh_vertices,
-      mesh_indices,
-      reordered_mesh_indices);
-
-  // const int vertices_num = 4;
-  // float vertices[] = {0, 0, 0, 5, 0, 0, 0, 0, -5, 0, 0, 5};
-  // const int triangles_num = 2;
-  // int triangles[] = {0, 1, 2, 0, 3, 1};
-
-  // const int vertices_num = 4;
-  // float vertices[] = {5, 0, 5, -5, 0, 5, 5, 0, -5, -5, 0, -5};
-  // const int triangles_num = 2;
-  // int triangles[] = {0, 2, 1, 1, 2, 3};
-
-  for (int i = 0; i < vertices_num; i++)
-  {
-    Godot::print(
-        "wtf: {0}, {1}, {2}", vertices[i * 3 + 0], vertices[i * 3 + 1], vertices[i * 3 + 2]);
-  }
-  Godot::print(
-      "wtf: {0}, {1}, {2}, {3}, {4}, {5}",
-      triangles[0],
-      triangles[1],
-      triangles[2],
-      triangles[3],
-      triangles[4],
-      triangles[5]);
+      "RecastPolygonMesh::build_from_raw_triangles(,vertices_num={0},,triangles_num={1})",
+      vertices_num,
+      triangles_num);
+#endif
 
   std::unique_ptr<Recast::Heightfield> height_field{std::make_unique<Recast::Heightfield>()};
   std::unique_ptr<Recast::CompactHeightfield> compact_height_field{
@@ -112,39 +86,10 @@ void RecastPolygonMesh::build_from_plane_mesh(Ref<PlaneMesh> plane_mesh)
       poly_mesh_detail->ptr() == nullptr)
   {
     ERR_PRINT("Cannot allocate basic recast structures");
-    return;
+    return false;
   }
 
-  // rcContext recast_context;
   RecastContext recast_context;
-  // recast_context.enableLog(true);
-  // recast_context.log(RC_LOG_WARNING, "xxx");
-
-  // rcConfig recast_config;
-  // memset(&recast_config, 0, sizeof(recast_config));
-  // // recast_config.width = 64;
-  // // recast_config.height = 64;
-  // recast_config.tileSize = 64;
-  // recast_config.borderSize = 0;
-  // recast_config.cs = 0.3;
-  // recast_config.ch = 0.3;
-  // // recast_config.bmin[0] = -10;
-  // // recast_config.bmin[1] = -10;
-  // // recast_config.bmin[2] = -10;
-  // // recast_config.bmax[0] = 10;
-  // // recast_config.bmax[1] = 10;
-  // // recast_config.bmax[2] = 10;
-  // recast_config.walkableSlopeAngle = 45; // [dg]
-  // recast_config.walkableHeight = 7; // [vx], ceil (2[agent_height] / 0.3[ch])
-  // recast_config.walkableClimb = 1; // [vx]
-  // recast_config.walkableRadius = 2; // [vx]
-  // recast_config.maxEdgeLen = 40; // [vx], 12/0.3[ch]
-  // recast_config.maxSimplificationError = 1.3; // [vx]
-  // recast_config.minRegionArea = 2; // [vx]
-  // recast_config.mergeRegionArea = 4; // [vx]
-  // recast_config.maxVertsPerPoly = 6;
-  // recast_config.detailSampleDist = 1.8; // [wu]
-  // recast_config.detailSampleMaxError = 0.3; // [wu]
 
   rcConfig recast_config;
   memset(&recast_config, 0, sizeof(recast_config));
@@ -173,14 +118,17 @@ void RecastPolygonMesh::build_from_plane_mesh(Ref<PlaneMesh> plane_mesh)
   recast_config.detailSampleMaxError = 1.0; // [wu]
 
   rcCalcBounds(vertices, vertices_num, recast_config.bmin, recast_config.bmax);
+
+#ifdef DEBUG_LOGS
   Godot::print(
-      "RecastPolygonMesh::build_from_plane_mesh() bmin: ({0},{1},{2}), bmax: ({3},{4},{5})",
+      "RecastPolygonMesh::build_from_raw_triangles(): bmin: ({0},{1},{2}), bmax: ({3},{4},{5})",
       recast_config.bmin[0],
       recast_config.bmin[1],
       recast_config.bmin[2],
       recast_config.bmax[0],
       recast_config.bmax[1],
       recast_config.bmax[2]);
+#endif
 
   rcCalcGridSize(
       recast_config.bmin,
@@ -188,10 +136,13 @@ void RecastPolygonMesh::build_from_plane_mesh(Ref<PlaneMesh> plane_mesh)
       recast_config.cs,
       &recast_config.width,
       &recast_config.height);
-  Godot::print((std::string("RecastPolygonMesh::build_from_plane_mesh() w:") +
-                std::to_string(recast_config.width) + std::string(", h:") +
-                std::to_string(recast_config.height))
-                   .c_str());
+
+#ifdef DEBUG_LOGS
+  Godot::print(
+      "RecastPolygonMesh::build_from_raw_triangles(): grid w: {0}, h: {1}",
+      recast_config.width,
+      recast_config.height);
+#endif
 
   if (not rcCreateHeightfield(
           &recast_context,
@@ -204,15 +155,8 @@ void RecastPolygonMesh::build_from_plane_mesh(Ref<PlaneMesh> plane_mesh)
           recast_config.ch))
   {
     ERR_PRINT("rcCreateHeightfield() failed");
-    return;
+    return false;
   }
-
-  Godot::print(
-      "RecastPolygonMesh::build_from_plane_mesh() hf: {0}, {1}, {2}, {3}",
-      height_field->ref().width,
-      height_field->ref().height,
-      height_field->ref().cs,
-      height_field->ref().ch);
 
   unsigned char areas[triangles_num] = {0};
   memset(areas, 0, triangles_num * sizeof(unsigned char));
@@ -224,27 +168,7 @@ void RecastPolygonMesh::build_from_plane_mesh(Ref<PlaneMesh> plane_mesh)
       triangles,
       triangles_num,
       areas);
-  // unsigned char areas[] = {1, 2};
 
-  Godot::print(
-      "RecastPolygonMesh::build_from_plane_mesh() vertices_num: {0}, triangles_num: {1}, {2} {3} "
-      "{4}",
-      vertices_num,
-      triangles_num,
-      vertices[0],
-      vertices[1],
-      vertices[2]);
-  // if (not rcRasterizeTriangles(
-  //         &recast_context,
-  //         vertices,
-  //         areas,
-  //         triangles_num,
-  //         height_field->ref(),
-  //         recast_config.walkableClimb))
-  // {
-  //   ERR_PRINT("rcRasterizeTriangles() failed");
-  //   return;
-  // }
   if (not rcRasterizeTriangles(
           &recast_context,
           vertices,
@@ -256,11 +180,8 @@ void RecastPolygonMesh::build_from_plane_mesh(Ref<PlaneMesh> plane_mesh)
           recast_config.walkableClimb))
   {
     ERR_PRINT("rcRasterizeTriangles() failed");
-    return;
+    return false;
   }
-
-  // rcContext* ctx = &recast_context;
-  // ctx->log(RC_LOG_WARNING, "xxx2");
 
   // TODO: make conditional
   rcFilterLowHangingWalkableObstacles(
@@ -281,25 +202,27 @@ void RecastPolygonMesh::build_from_plane_mesh(Ref<PlaneMesh> plane_mesh)
           compact_height_field->ref()))
   {
     ERR_PRINT("rcBuildCompactHeightfield() failed");
-    return;
+    return false;
   }
 
+#ifdef DEBUG_LOGS
   Godot::print(
-      "RecastPolygonMesh::build_from_plane_mesh() chf_1: {0}",
+      "RecastPolygonMesh::build_from_raw_triangles(): compact height field's spanCount: {0}",
       compact_height_field->ref().spanCount);
+#endif
 
   if (not rcErodeWalkableArea(
           &recast_context, recast_config.walkableRadius, compact_height_field->ref()))
   {
     ERR_PRINT("rcErodeWalkableArea() failed");
-    return;
+    return false;
   }
 
   // TODO: implement all partitioning types
   if (not rcBuildDistanceField(&recast_context, compact_height_field->ref()))
   {
     ERR_PRINT("rcBuildDistanceField() failed");
-    return;
+    return false;
   }
   if (not rcBuildRegions(
           &recast_context,
@@ -309,7 +232,7 @@ void RecastPolygonMesh::build_from_plane_mesh(Ref<PlaneMesh> plane_mesh)
           recast_config.mergeRegionArea))
   {
     ERR_PRINT("rcBuildRegions() failed");
-    return;
+    return false;
   }
   // if (not !rcBuildRegionsMonotone(
   //         &recast_context,
@@ -319,11 +242,14 @@ void RecastPolygonMesh::build_from_plane_mesh(Ref<PlaneMesh> plane_mesh)
   //         recast_config.mergeRegionArea))
   // {
   //   ERR_PRINT("rcBuildRegionsMonotone() failed");
-  //   return;
+  //   return false;
   // }
+
+#ifdef DEBUG_LOGS
   Godot::print(
-      "RecastPolygonMesh::build_from_plane_mesh() chf_2: {0}",
+      "RecastPolygonMesh::build_from_raw_triangles(): compact height field's spanCount: {0}",
       compact_height_field->ref().spanCount);
+#endif
 
   if (not rcBuildContours(
           &recast_context,
@@ -333,22 +259,28 @@ void RecastPolygonMesh::build_from_plane_mesh(Ref<PlaneMesh> plane_mesh)
           contour_set->ref()))
   {
     ERR_PRINT("rcBuildContours() failed");
-    return;
+    return false;
   }
 
-  Godot::print("RecastPolygonMesh::build_from_plane_mesh: nconts: {0}", contour_set->ptr()->nconts);
+#ifdef DEBUG_LOGS
+  Godot::print(
+      "RecastPolygonMesh::build_from_raw_triangles(): contour set's nconts: {0}",
+      contour_set->ptr()->nconts);
+#endif
 
   if (not rcBuildPolyMesh(
           &recast_context, contour_set->ref(), recast_config.maxVertsPerPoly, poly_mesh->ref()))
   {
     ERR_PRINT("rcBuildPolyMesh() failed");
-    return;
+    return false;
   }
 
+#ifdef DEBUG_LOGS
   Godot::print(
-      "RecastPolygonMesh::build_from_plane_mesh: nverts: {0}, npolys: {1}",
+      "RecastPolygonMesh::build_from_raw_triangles(): poly mesh'es nverts: {0}, npolys: {1}",
       poly_mesh->ptr()->nverts,
       poly_mesh->ptr()->npolys);
+#endif
 
   if (not rcBuildPolyMeshDetail(
           &recast_context,
@@ -359,19 +291,24 @@ void RecastPolygonMesh::build_from_plane_mesh(Ref<PlaneMesh> plane_mesh)
           poly_mesh_detail->ref()))
   {
     ERR_PRINT("rcBuildPolyMeshDetail() failed");
-    return;
+    return false;
   }
+
+#ifdef DEBUG_LOGS
   Godot::print(
-      "RecastPolygonMesh::build_from_plane_mesh: nverts: {0}, nmeshes: {1}",
+      "RecastPolygonMesh::build_from_raw_triangles(): poly mesh detail's nverts: {0}, nmeshes: {1}",
       poly_mesh_detail->ptr()->nverts,
       poly_mesh_detail->ptr()->nmeshes);
+#endif
+
   simple_recast_mesh = std::move(poly_mesh);
   detailed_recast_mesh = std::move(poly_mesh_detail);
+
+  return true;
 }
 
-Ref<Mesh> RecastPolygonMesh::get_mesh() const
+Ref<Mesh> RecastPolygonMesh::get_poly_mesh() const
 {
-  Godot::print("RecastPolygonMesh::get_mesh()");
   if (simple_recast_mesh)
   {
     rcPolyMeshDetail* poly_mesh_detail = detailed_recast_mesh->ptr();
@@ -420,7 +357,61 @@ Ref<Mesh> RecastPolygonMesh::get_mesh() const
     Godot::print(
         "RecastPolygonMesh::get_mesh(): #vs: {0}, #is: {1}", vertices.size(), indices.size());
     resulting_mesh->add_surface_from_arrays(Mesh::PRIMITIVE_TRIANGLES, arrays);
-    // return PlaneMesh::_new();
+    return resulting_mesh;
+  }
+  return nullptr;
+}
+
+Ref<Mesh> RecastPolygonMesh::get_poly_mesh_detail() const
+{
+  if (simple_recast_mesh)
+  {
+    rcPolyMeshDetail* poly_mesh_detail = detailed_recast_mesh->ptr();
+    PoolVector3Array vertices;
+    Godot::print(
+        "RecastPolygonMesh::get_mesh(): nverts: {0}, nmeshes: {1}",
+        poly_mesh_detail->nverts,
+        poly_mesh_detail->nmeshes);
+    if (poly_mesh_detail->nverts == 0)
+    {
+      return nullptr;
+    }
+    for (int vertexIndex = 0; vertexIndex < poly_mesh_detail->nverts; vertexIndex++)
+    {
+      const float* v = &poly_mesh_detail->verts[vertexIndex * 3];
+      vertices.append(Vector3(v[0], v[1], v[2]));
+    }
+    PoolIntArray indices;
+    // TODO: resize & use ::write API
+    for (int submeshIndex = 0; submeshIndex < poly_mesh_detail->nmeshes; submeshIndex++)
+    {
+      const unsigned int* m = &poly_mesh_detail->meshes[submeshIndex * 4];
+      const unsigned int bverts = m[0];
+      const unsigned int btris = m[2];
+      const unsigned int ntris = m[3];
+      const unsigned char* tris = &poly_mesh_detail->tris[btris * 4];
+      for (unsigned int triangleIndex = 0; triangleIndex < ntris; triangleIndex++)
+      {
+        // Vector<int> nav_indices;
+        // nav_indices.resize(3);
+        // // Polygon order in recast is opposite than godot's
+        // nav_indices.write[0] = ((int)(bverts + tris[triangleIndex * 4 + 0]));
+        // nav_indices.write[1] = ((int)(bverts + tris[triangleIndex * 4 + 2]));
+        // nav_indices.write[2] = ((int)(bverts + tris[triangleIndex * 4 + 1]));
+        // p_nav_mesh->add_polygon(nav_indices);
+        indices.append(bverts + tris[triangleIndex * 4 + 0]);
+        indices.append(bverts + tris[triangleIndex * 4 + 2]);
+        indices.append(bverts + tris[triangleIndex * 4 + 1]);
+      }
+    }
+    Array arrays;
+    arrays.resize(Mesh::ARRAY_MAX);
+    arrays[Mesh::ARRAY_VERTEX] = vertices;
+    arrays[Mesh::ARRAY_INDEX] = indices;
+    Ref<ArrayMesh> resulting_mesh = ArrayMesh::_new();
+    Godot::print(
+        "RecastPolygonMesh::get_mesh(): #vs: {0}, #is: {1}", vertices.size(), indices.size());
+    resulting_mesh->add_surface_from_arrays(Mesh::PRIMITIVE_TRIANGLES, arrays);
     return resulting_mesh;
   }
   return nullptr;

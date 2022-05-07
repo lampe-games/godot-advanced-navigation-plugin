@@ -9,6 +9,8 @@
 
 #include "RecastWrappers.hpp"
 
+// TODO: rename to RecastPolygonMeshBundle iff RecastPolyMesh/RecastPolyMeshDetail are introduced
+
 class RecastPolygonMesh : public godot::Resource
 {
   GODOT_CLASS(RecastPolygonMesh, godot::Resource);
@@ -19,14 +21,21 @@ class RecastPolygonMesh : public godot::Resource
 
   void _init();
 
-  void build_from_plane_mesh(godot::Ref<godot::PlaneMesh>);
-  godot::Ref<godot::Mesh> get_mesh() const;
+  bool build_from_plane_mesh(godot::Ref<godot::PlaneMesh>);
+  bool build_from_triangles(godot::PoolVector3Array& vertices, godot::PoolIntArray& indices);
+  bool build_from_raw_triangles(
+      const float* vertices, // [(x, y, z) * vertices_num]
+      const int vertices_num,
+      const int* indices, // [(vertA, vertB, vertC) * triangles_num], must be reordered
+      const int triangles_num);
+
+  godot::Ref<godot::Mesh> get_poly_mesh() const;
+  godot::Ref<godot::Mesh> get_poly_mesh_detail() const;
 
   static void _register_methods()
   {
-    register_method("build_from_plane_mesh", &RecastPolygonMesh::build_from_plane_mesh);
-    register_method("get_mesh", &RecastPolygonMesh::get_mesh);
-    ;
+    // register_method("build_from_plane_mesh", &RecastPolygonMesh::build_from_plane_mesh);
+    // register_method("get_mesh", &RecastPolygonMesh::get_mesh);
   }
 
  private:

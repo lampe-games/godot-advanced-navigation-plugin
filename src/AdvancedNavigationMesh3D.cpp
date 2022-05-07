@@ -67,7 +67,7 @@ Ref<Mesh> AdvancedNavigationMesh3D::create_debug_mesh()
   if (server)
   {
     // return server->build_navigation_mesh();
-    return server->build_polygon_mesh()->get_mesh();
+    return server->build_polygon_mesh()->get_poly_mesh();
   }
   return nullptr;
 }
@@ -83,7 +83,7 @@ Ref<Mesh> AdvancedNavigationMesh3D::load_debug_mesh()
   if (server)
   {
     // return server->build_navigation_mesh();
-    return server->build_polygon_mesh()->get_mesh();
+    return server->build_polygon_mesh()->get_poly_mesh();
   }
   return nullptr;
 }
