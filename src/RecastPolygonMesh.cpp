@@ -309,110 +309,115 @@ bool RecastPolygonMesh::build_from_raw_triangles(
 
 Ref<Mesh> RecastPolygonMesh::get_poly_mesh() const
 {
-  if (simple_recast_mesh)
+  if (simple_recast_mesh == nullptr or simple_recast_mesh->ref().nverts <= 0)
   {
-    rcPolyMeshDetail* poly_mesh_detail = detailed_recast_mesh->ptr();
-    PoolVector3Array vertices;
-    Godot::print(
-        "RecastPolygonMesh::get_mesh(): nverts: {0}, nmeshes: {1}",
-        poly_mesh_detail->nverts,
-        poly_mesh_detail->nmeshes);
-    if (poly_mesh_detail->nverts == 0)
-    {
-      return nullptr;
-    }
-    for (int vertexIndex = 0; vertexIndex < poly_mesh_detail->nverts; vertexIndex++)
-    {
-      const float* v = &poly_mesh_detail->verts[vertexIndex * 3];
-      vertices.append(Vector3(v[0], v[1], v[2]));
-    }
-    PoolIntArray indices;
-    // TODO: resize & use ::write API
-    for (int submeshIndex = 0; submeshIndex < poly_mesh_detail->nmeshes; submeshIndex++)
-    {
-      const unsigned int* m = &poly_mesh_detail->meshes[submeshIndex * 4];
-      const unsigned int bverts = m[0];
-      const unsigned int btris = m[2];
-      const unsigned int ntris = m[3];
-      const unsigned char* tris = &poly_mesh_detail->tris[btris * 4];
-      for (unsigned int triangleIndex = 0; triangleIndex < ntris; triangleIndex++)
-      {
-        // Vector<int> nav_indices;
-        // nav_indices.resize(3);
-        // // Polygon order in recast is opposite than godot's
-        // nav_indices.write[0] = ((int)(bverts + tris[triangleIndex * 4 + 0]));
-        // nav_indices.write[1] = ((int)(bverts + tris[triangleIndex * 4 + 2]));
-        // nav_indices.write[2] = ((int)(bverts + tris[triangleIndex * 4 + 1]));
-        // p_nav_mesh->add_polygon(nav_indices);
-        indices.append(bverts + tris[triangleIndex * 4 + 0]);
-        indices.append(bverts + tris[triangleIndex * 4 + 2]);
-        indices.append(bverts + tris[triangleIndex * 4 + 1]);
-      }
-    }
-    Array arrays;
-    arrays.resize(Mesh::ARRAY_MAX);
-    arrays[Mesh::ARRAY_VERTEX] = vertices;
-    arrays[Mesh::ARRAY_INDEX] = indices;
-    Ref<ArrayMesh> resulting_mesh = ArrayMesh::_new();
-    Godot::print(
-        "RecastPolygonMesh::get_mesh(): #vs: {0}, #is: {1}", vertices.size(), indices.size());
-    resulting_mesh->add_surface_from_arrays(Mesh::PRIMITIVE_TRIANGLES, arrays);
-    return resulting_mesh;
+    return nullptr;
   }
-  return nullptr;
+  rcPolyMesh& poly_mesh = simple_recast_mesh->ref();
+  PoolVector3Array vertices;
+  PoolIntArray indices;
+
+  const int nvp = poly_mesh.nvp;
+  if (nvp != 3)
+  {
+    ERR_PRINT("nvp != 3, implement properly to make it working");
+    return nullptr;
+  }
+
+  const float cs = poly_mesh.cs;
+  const float ch = poly_mesh.ch;
+  const float* orig = poly_mesh.bmin;
+  for (unsigned polygon_index = 0; polygon_index < poly_mesh.npolys; ++polygon_index)
+  {
+    const unsigned short* p = &poly_mesh.polys[polygon_index * poly_mesh.nvp * 2];
+
+    // Iterate the vertices.
+    unsigned short vi[3]; // The vertex indices.
+    for (int j = 0; j < nvp; ++j)
+    {
+      if (p[j] == RC_MESH_NULL_IDX)
+        break; // End of vertices.
+
+      if (p[j + poly_mesh.nvp] == RC_MESH_NULL_IDX)
+      {
+        // The edge beginning with this vertex is a solid border.
+      }
+      else
+      {
+        // The edge beginning with this vertex connects to
+        // polygon p[j + nvp].
+      }
+
+      // Convert to world space.
+      const unsigned short* v = &poly_mesh.verts[p[j] * 3];
+      const float x = orig[0] + v[0] * cs;
+      const float y = orig[1] + v[1] * ch;
+      const float z = orig[2] + v[2] * cs;
+      vertices.append(Vector3(x, y, z));
+      indices.append(vertices.size() - 1);
+      // Do something with the vertices.
+    }
+  }
+  for (unsigned triangle_index = 0; triangle_index < indices.size() / 3; triangle_index++)
+  {
+    int tmp = indices[triangle_index * 3 + 1];
+    indices.set(triangle_index * 3 + 1, indices[triangle_index * 3 + 2]);
+    indices.set(triangle_index * 3 + 2, tmp);
+  }
+
+  Array arrays;
+  arrays.resize(Mesh::ARRAY_MAX);
+  arrays[Mesh::ARRAY_VERTEX] = vertices;
+  arrays[Mesh::ARRAY_INDEX] = indices;
+  Ref<ArrayMesh> resulting_mesh = ArrayMesh::_new();
+  resulting_mesh->add_surface_from_arrays(Mesh::PRIMITIVE_TRIANGLES, arrays);
+  return resulting_mesh;
 }
 
 Ref<Mesh> RecastPolygonMesh::get_poly_mesh_detail() const
 {
-  if (simple_recast_mesh)
+  if (detailed_recast_mesh == nullptr or detailed_recast_mesh->ref().nverts <= 0)
   {
-    rcPolyMeshDetail* poly_mesh_detail = detailed_recast_mesh->ptr();
-    PoolVector3Array vertices;
-    Godot::print(
-        "RecastPolygonMesh::get_mesh(): nverts: {0}, nmeshes: {1}",
-        poly_mesh_detail->nverts,
-        poly_mesh_detail->nmeshes);
-    if (poly_mesh_detail->nverts == 0)
-    {
-      return nullptr;
-    }
-    for (int vertexIndex = 0; vertexIndex < poly_mesh_detail->nverts; vertexIndex++)
-    {
-      const float* v = &poly_mesh_detail->verts[vertexIndex * 3];
-      vertices.append(Vector3(v[0], v[1], v[2]));
-    }
-    PoolIntArray indices;
-    // TODO: resize & use ::write API
-    for (int submeshIndex = 0; submeshIndex < poly_mesh_detail->nmeshes; submeshIndex++)
-    {
-      const unsigned int* m = &poly_mesh_detail->meshes[submeshIndex * 4];
-      const unsigned int bverts = m[0];
-      const unsigned int btris = m[2];
-      const unsigned int ntris = m[3];
-      const unsigned char* tris = &poly_mesh_detail->tris[btris * 4];
-      for (unsigned int triangleIndex = 0; triangleIndex < ntris; triangleIndex++)
-      {
-        // Vector<int> nav_indices;
-        // nav_indices.resize(3);
-        // // Polygon order in recast is opposite than godot's
-        // nav_indices.write[0] = ((int)(bverts + tris[triangleIndex * 4 + 0]));
-        // nav_indices.write[1] = ((int)(bverts + tris[triangleIndex * 4 + 2]));
-        // nav_indices.write[2] = ((int)(bverts + tris[triangleIndex * 4 + 1]));
-        // p_nav_mesh->add_polygon(nav_indices);
-        indices.append(bverts + tris[triangleIndex * 4 + 0]);
-        indices.append(bverts + tris[triangleIndex * 4 + 2]);
-        indices.append(bverts + tris[triangleIndex * 4 + 1]);
-      }
-    }
-    Array arrays;
-    arrays.resize(Mesh::ARRAY_MAX);
-    arrays[Mesh::ARRAY_VERTEX] = vertices;
-    arrays[Mesh::ARRAY_INDEX] = indices;
-    Ref<ArrayMesh> resulting_mesh = ArrayMesh::_new();
-    Godot::print(
-        "RecastPolygonMesh::get_mesh(): #vs: {0}, #is: {1}", vertices.size(), indices.size());
-    resulting_mesh->add_surface_from_arrays(Mesh::PRIMITIVE_TRIANGLES, arrays);
-    return resulting_mesh;
+    return nullptr;
   }
-  return nullptr;
+  rcPolyMeshDetail& poly_mesh_detail = detailed_recast_mesh->ref();
+
+  PoolVector3Array vertices;
+  vertices.resize(poly_mesh_detail.nverts);
+  PoolVector3Array::Write vertices_writer = vertices.write();
+  for (int vertex_index = 0; vertex_index < poly_mesh_detail.nverts; vertex_index++)
+  {
+    const float* raw_vertex = &poly_mesh_detail.verts[vertex_index * 3];
+    vertices_writer[vertex_index].x = raw_vertex[0];
+    vertices_writer[vertex_index].y = raw_vertex[1];
+    vertices_writer[vertex_index].z = raw_vertex[2];
+  }
+
+  // TODO: consider creating separate surfaces for each submesh
+  PoolIntArray indices;
+  indices.resize(poly_mesh_detail.ntris * 3);
+  PoolIntArray::Write indices_writer = indices.write();
+  unsigned next_index_index = 0;
+  for (int submesh_index = 0; submesh_index < poly_mesh_detail.nmeshes; submesh_index++)
+  {
+    const unsigned int* submesh = &poly_mesh_detail.meshes[submesh_index * 4];
+    const unsigned int& bverts = submesh[0];
+    const unsigned int& btris = submesh[2];
+    const unsigned int& ntris = submesh[3];
+    const unsigned char* tris = &poly_mesh_detail.tris[btris * 4];
+    for (unsigned int triangle_index = 0; triangle_index < ntris; triangle_index++)
+    {
+      indices_writer[next_index_index++] = bverts + tris[triangle_index * 4 + 0];
+      indices_writer[next_index_index++] = bverts + tris[triangle_index * 4 + 2];
+      indices_writer[next_index_index++] = bverts + tris[triangle_index * 4 + 1];
+    }
+  }
+
+  Array arrays;
+  arrays.resize(Mesh::ARRAY_MAX);
+  arrays[Mesh::ARRAY_VERTEX] = vertices;
+  arrays[Mesh::ARRAY_INDEX] = indices;
+  Ref<ArrayMesh> resulting_mesh = ArrayMesh::_new();
+  resulting_mesh->add_surface_from_arrays(Mesh::PRIMITIVE_TRIANGLES, arrays);
+  return resulting_mesh;
 }
