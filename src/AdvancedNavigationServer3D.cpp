@@ -16,6 +16,8 @@ Ref<RecastPolygonMesh> AdvancedNavigationServer3D::build_polygon_mesh()
 {
   Godot::print("AdvancedNavigationServer3D::build_polygon_mesh()");
   Ref<RecastPolygonMesh> rc_poly_mesh{RecastPolygonMesh::_new()};
-  rc_poly_mesh->build_from_plane_mesh(Ref<PlaneMesh>(PlaneMesh::_new()));
+  Ref<PlaneMesh> plane_mesh{PlaneMesh::_new()};
+  plane_mesh->set_size(Vector2(5, 5));
+  rc_poly_mesh->build_from_plane_mesh(plane_mesh);
   return rc_poly_mesh;
 }

@@ -1,9 +1,13 @@
 #pragma once
 
+#include <memory>
+
 #include <Godot.hpp>
 #include <Mesh.hpp>
 #include <PlaneMesh.hpp>
 #include <Resource.hpp>
+
+#include "RecastWrappers.hpp"
 
 class RecastPolygonMesh : public godot::Resource
 {
@@ -24,4 +28,8 @@ class RecastPolygonMesh : public godot::Resource
     register_method("get_mesh", &RecastPolygonMesh::get_mesh);
     ;
   }
+
+ private:
+  std::unique_ptr<Recast::PolyMesh> simple_recast_mesh{nullptr};
+  std::unique_ptr<Recast::PolyMeshDetail> detailed_recast_mesh{nullptr};
 };
