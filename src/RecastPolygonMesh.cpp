@@ -25,15 +25,6 @@ void RecastPolygonMesh::_init()
   Godot::print("RecastPolygonMesh::_init()");
 }
 
-bool RecastPolygonMesh::build_from_plane_mesh(Ref<PlaneMesh> plane_mesh)
-{
-  Array mesh_arrays = plane_mesh->get_mesh_arrays();
-  // TODO: ensure no copy
-  PoolVector3Array triangle_vertices = mesh_arrays[Mesh::ARRAY_VERTEX];
-  PoolIntArray triangle_indices = mesh_arrays[Mesh::ARRAY_INDEX];
-  return build_from_triangles(triangle_vertices, triangle_indices);
-}
-
 bool RecastPolygonMesh::build_from_triangles(PoolVector3Array& vertices, PoolIntArray& indices)
 {
   // unpack Vector3s into flat floats

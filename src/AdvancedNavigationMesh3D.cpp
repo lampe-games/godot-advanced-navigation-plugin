@@ -50,6 +50,8 @@ void AdvancedNavigationMesh3D::create_debug_mesh_instance()
 {
   Godot::print("AdvancedNavigationMesh3D::create_debug_mesh_instance()");
   debug_mesh_instance = MeshInstance::_new();
+  debug_mesh_instance->set_name("DebugNavigationMeshInstance");
+  debug_mesh_instance->set_meta("advanced_navigation:debug_mesh", true);
   debug_mesh_instance->set_material_override(create_debug_mesh_instance_material());
   add_child(debug_mesh_instance);
 }
@@ -66,8 +68,8 @@ Ref<Mesh> AdvancedNavigationMesh3D::create_debug_mesh()
       get_tree()->get_root()->get_node<AdvancedNavigationServer3D>("AdvancedNavigationServer3D");
   if (server)
   {
-    // return server->build_navigation_mesh();
-    return server->build_polygon_mesh()->get_poly_mesh();
+    auto nodes_to_parse = get_children();
+    return server->build_polygon_mesh(nodes_to_parse)->get_poly_mesh_detail();
   }
   return nullptr;
 }
@@ -78,14 +80,7 @@ Ref<Mesh> AdvancedNavigationMesh3D::load_debug_mesh()
   {
     return nullptr;
   }
-  auto* server =
-      get_tree()->get_root()->get_node<AdvancedNavigationServer3D>("AdvancedNavigationServer3D");
-  if (server)
-  {
-    // return server->build_navigation_mesh();
-    return server->build_polygon_mesh()->get_poly_mesh_detail();
-  }
-  return nullptr;
+  return create_debug_mesh();
 }
 
 Ref<Material> AdvancedNavigationMesh3D::create_debug_mesh_instance_material()

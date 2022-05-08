@@ -4,7 +4,6 @@
 
 #include <Godot.hpp>
 #include <Mesh.hpp>
-#include <PlaneMesh.hpp>
 #include <Resource.hpp>
 
 #include "RecastWrappers.hpp"
@@ -21,7 +20,9 @@ class RecastPolygonMesh : public godot::Resource
 
   void _init();
 
-  bool build_from_plane_mesh(godot::Ref<godot::PlaneMesh>);
+  // TODO: pass parameters
+  // TODO: build_from_triangles(arrays)
+  // TODO: build_from_reordered_triangles(arrays) or CCW/CW instead of reordered
   bool build_from_triangles(godot::PoolVector3Array& vertices, godot::PoolIntArray& indices);
   bool build_from_raw_triangles(
       const float* vertices, // [(x, y, z) * vertices_num]
