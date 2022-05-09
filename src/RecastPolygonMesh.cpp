@@ -76,7 +76,19 @@ bool RecastPolygonMesh::build_from_raw_triangles(
   float bmin[3];
   float bmax[3];
 
-  rcCalcBounds(vertices, vertices_num, bmin, bmax);
+  if (config->custom_aabb_enabled)
+  {
+    bmin[0] = config->bmin.x;
+    bmin[1] = config->bmin.y;
+    bmin[2] = config->bmin.z;
+    bmax[0] = config->bmax.x;
+    bmax[1] = config->bmax.y;
+    bmax[2] = config->bmax.z;
+  }
+  else
+  {
+    rcCalcBounds(vertices, vertices_num, bmin, bmax);
+  }
 
 #ifdef PIPELINE_DEBUG
   Godot::print(

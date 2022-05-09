@@ -2,6 +2,7 @@
 
 #include <Godot.hpp>
 #include <Resource.hpp>
+#include <Vector3.hpp>
 
 class RecastPolygonMeshConfig : public godot::Resource
 {
@@ -15,7 +16,7 @@ class RecastPolygonMeshConfig : public godot::Resource
     PARTITIONING_ALGORITHM_LAYERS,
   };
 
-  void _init() {}
+  void _init();
 
   // rcConfig
   static constexpr float default_cell_size{0.3};
@@ -31,6 +32,7 @@ class RecastPolygonMeshConfig : public godot::Resource
   static constexpr int default_max_verts_per_poly{6};
   static constexpr float default_detail_sample_dist{1.8};
   static constexpr float default_detail_sample_max_error{1.0};
+  static constexpr bool default_custom_aabb_enabled{false};
   // other
   static constexpr int default_partitioning_algorithm{PARTITIONING_ALGORITHM_WATERSHED};
   static constexpr bool default_filter_low_hanging_walkable_obstacles{true};
@@ -106,6 +108,15 @@ class RecastPolygonMeshConfig : public godot::Resource
         "filter/walkable_low_height_spans",
         &RecastPolygonMeshConfig::filter_walkable_low_height_spans,
         default_filter_walkable_low_height_spans);
+
+    godot::register_property<RecastPolygonMeshConfig, bool>(
+        "custom_aabb_enabled/enabled",
+        &RecastPolygonMeshConfig::custom_aabb_enabled,
+        default_custom_aabb_enabled);
+    godot::register_property<RecastPolygonMeshConfig, godot::Vector3>(
+        "custom_aabb_enabled/bmin", &RecastPolygonMeshConfig::bmin, godot::Vector3(-10, -10, -10));
+    godot::register_property<RecastPolygonMeshConfig, godot::Vector3>(
+        "custom_aabb_enabled/bmax", &RecastPolygonMeshConfig::bmax, godot::Vector3(10, 10, 10));
   }
 
  public:
@@ -124,6 +135,9 @@ class RecastPolygonMeshConfig : public godot::Resource
   int max_verts_per_poly{default_max_verts_per_poly}; // [Limit: >= 3]
   float detail_sample_dist{default_detail_sample_dist}; // [Limits: 0 or >= 0.9] [Units: wu]
   float detail_sample_max_error{default_detail_sample_max_error}; // [Limit: >=0] [Units: wu]
+  bool custom_aabb_enabled{default_custom_aabb_enabled};
+  godot::Vector3 bmin;
+  godot::Vector3 bmax;
   // other
   int partitioning_algorithm{default_partitioning_algorithm};
   bool filter_low_hanging_walkable_obstacles{default_filter_low_hanging_walkable_obstacles};
