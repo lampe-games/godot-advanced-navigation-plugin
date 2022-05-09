@@ -14,14 +14,15 @@ void AdvancedNavigationServer3D::_ready()
 }
 
 Ref<RecastPolygonMesh> AdvancedNavigationServer3D::build_polygon_mesh(
-    Array& nodes_to_parse_geometry_from)
+    Array& nodes_to_parse_geometry_from,
+    Ref<RecastPolygonMeshConfig> config)
 {
   auto triangles = get_triangles_from_geometry(nodes_to_parse_geometry_from);
   // TODO: ensure no copy
   PoolVector3Array triangle_vertices = triangles[Mesh::ARRAY_VERTEX];
   PoolIntArray triangle_indices = triangles[Mesh::ARRAY_INDEX];
   Ref<RecastPolygonMesh> rc_poly_mesh{RecastPolygonMesh::_new()};
-  rc_poly_mesh->build_from_triangles(triangle_vertices, triangle_indices);
+  rc_poly_mesh->build_from_triangles(triangle_vertices, triangle_indices, config);
   return rc_poly_mesh;
 }
 
@@ -38,15 +39,16 @@ Array AdvancedNavigationServer3D::get_triangles_from_geometry(Array& nodes_to_pa
   for (int node_index = 0; node_index < nodes_to_parse_geometry_from.size(); node_index++)
   {
     const auto& item = nodes_to_parse_geometry_from[node_index];
-    if (not Object::cast_to<Node>(item))
+    if (not Object::cast_to<Spatial>(item))
     {
       continue;
     }
-    Node* node = Object::cast_to<Node>(item);
+    Spatial* node = Object::cast_to<Spatial>(item);
     if (node->has_meta("advanced_navigation:debug_mesh"))
     {
       continue;
     }
+    auto transform = node->get_global_transform();
     if (Object::cast_to<MeshInstance>(item))
     {
       MeshInstance* mesh_instance = Object::cast_to<MeshInstance>(item);
@@ -58,11 +60,11 @@ Array AdvancedNavigationServer3D::get_triangles_from_geometry(Array& nodes_to_pa
       auto faces = mesh->get_faces();
       for (int face_index = 0; face_index < faces.size() / 3; face_index++)
       {
-        triangle_vertices.append(faces[face_index * 3]);
+        triangle_vertices.append(transform.xform(faces[face_index * 3]));
         triangle_indices.append(triangle_vertices.size() - 1);
-        triangle_vertices.append(faces[face_index * 3 + 1]);
+        triangle_vertices.append(transform.xform(faces[face_index * 3 + 1]));
         triangle_indices.append(triangle_vertices.size() - 1);
-        triangle_vertices.append(faces[face_index * 3 + 2]);
+        triangle_vertices.append(transform.xform(faces[face_index * 3 + 2]));
         triangle_indices.append(triangle_vertices.size() - 1);
       }
     }

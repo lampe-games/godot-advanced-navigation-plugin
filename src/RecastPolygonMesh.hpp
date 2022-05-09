@@ -5,7 +5,9 @@
 #include <Godot.hpp>
 #include <Mesh.hpp>
 #include <Resource.hpp>
+// #include <Ref.hpp>
 
+#include "RecastPolygonMeshConfig.hpp"
 #include "RecastWrappers.hpp"
 
 // TODO: rename to RecastPolygonMeshBundle iff RecastPolyMesh/RecastPolyMeshDetail are introduced
@@ -23,12 +25,16 @@ class RecastPolygonMesh : public godot::Resource
   // TODO: pass parameters
   // TODO: build_from_triangles(arrays)
   // TODO: build_from_reordered_triangles(arrays) or CCW/CW instead of reordered
-  bool build_from_triangles(godot::PoolVector3Array& vertices, godot::PoolIntArray& indices);
+  bool build_from_triangles(
+      godot::PoolVector3Array& vertices,
+      godot::PoolIntArray& indices,
+      godot::Ref<RecastPolygonMeshConfig>);
   bool build_from_raw_triangles(
       const float* vertices, // [(x, y, z) * vertices_num]
       const int vertices_num,
       const int* indices, // [(vertA, vertB, vertC) * triangles_num], must be reordered
-      const int triangles_num);
+      const int triangles_num,
+      godot::Ref<RecastPolygonMeshConfig>);
 
   godot::Ref<godot::Mesh> get_poly_mesh() const;
   godot::Ref<godot::Mesh> get_poly_mesh_detail() const;

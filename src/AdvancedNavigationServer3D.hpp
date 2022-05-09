@@ -16,9 +16,9 @@ class AdvancedNavigationServer3D : public Node
   void _init();
   void _ready();
 
-  // TODO: should get geometry
-  // TODO: should get parameters
-  Ref<RecastPolygonMesh> build_polygon_mesh(Array& nodes_to_parse_geometry_from);
+  Ref<RecastPolygonMesh> build_polygon_mesh(
+      Array& nodes_to_parse_geometry_from,
+      Ref<RecastPolygonMeshConfig>);
 
   Array get_triangles_from_geometry(Array& nodes_to_parse_geometry_from);
 

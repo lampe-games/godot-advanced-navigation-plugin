@@ -25,7 +25,10 @@ void RecastPolygonMesh::_init()
   Godot::print("RecastPolygonMesh::_init()");
 }
 
-bool RecastPolygonMesh::build_from_triangles(PoolVector3Array& vertices, PoolIntArray& indices)
+bool RecastPolygonMesh::build_from_triangles(
+    PoolVector3Array& vertices,
+    PoolIntArray& indices,
+    Ref<RecastPolygonMeshConfig> config)
 {
   // unpack Vector3s into flat floats
   const int vertices_num = vertices.size();
@@ -49,14 +52,15 @@ bool RecastPolygonMesh::build_from_triangles(PoolVector3Array& vertices, PoolInt
     raw_indices[triangle_index * 3 + 2] = indices_reader[triangle_index * 3 + 1];
   }
 
-  return build_from_raw_triangles(raw_vertices, vertices_num, raw_indices, triangles_num);
+  return build_from_raw_triangles(raw_vertices, vertices_num, raw_indices, triangles_num, config);
 }
 
 bool RecastPolygonMesh::build_from_raw_triangles(
     const float* vertices,
     const int vertices_num,
     const int* triangles,
-    const int triangles_num)
+    const int triangles_num,
+    Ref<RecastPolygonMeshConfig> config)
 {
 #ifdef DEBUG_LOGS
   Godot::print(
@@ -82,68 +86,42 @@ bool RecastPolygonMesh::build_from_raw_triangles(
 
   RecastContext recast_context;
 
-  rcConfig recast_config;
-  memset(&recast_config, 0, sizeof(recast_config));
-  // recast_config.width = 64;
-  // recast_config.height = 64;
-  // recast_config.tileSize = 64;
-  // recast_config.borderSize = 0;
-  recast_config.cs = 0.3;
-  recast_config.ch = 0.2;
-  // recast_config.bmin[0] = -10;
-  // recast_config.bmin[1] = -10;
-  // recast_config.bmin[2] = -10;
-  // recast_config.bmax[0] = 10;
-  // recast_config.bmax[1] = 10;
-  // recast_config.bmax[2] = 10;
-  recast_config.walkableSlopeAngle = 45; // [dg]
-  recast_config.walkableHeight = 10; // [vx]
-  recast_config.walkableClimb = 4; // [vx]
-  recast_config.walkableRadius = 2; // [vx]
-  recast_config.maxEdgeLen = 40; // [vx]
-  recast_config.maxSimplificationError = 1.3; // [vx]
-  recast_config.minRegionArea = 64; // [vx]
-  recast_config.mergeRegionArea = 20 * 20; // [vx]
-  recast_config.maxVertsPerPoly = 6;
-  recast_config.detailSampleDist = 1.8; // [wu]
-  recast_config.detailSampleMaxError = 1.0; // [wu]
+  int grid_width;
+  int grid_height;
+  float bmin[3];
+  float bmax[3];
 
-  rcCalcBounds(vertices, vertices_num, recast_config.bmin, recast_config.bmax);
+  rcCalcBounds(vertices, vertices_num, bmin, bmax);
 
 #ifdef DEBUG_LOGS
   Godot::print(
       "RecastPolygonMesh::build_from_raw_triangles(): bmin: ({0},{1},{2}), bmax: ({3},{4},{5})",
-      recast_config.bmin[0],
-      recast_config.bmin[1],
-      recast_config.bmin[2],
-      recast_config.bmax[0],
-      recast_config.bmax[1],
-      recast_config.bmax[2]);
+      bmin[0],
+      bmin[1],
+      bmin[2],
+      bmax[0],
+      bmax[1],
+      bmax[2]);
 #endif
 
-  rcCalcGridSize(
-      recast_config.bmin,
-      recast_config.bmax,
-      recast_config.cs,
-      &recast_config.width,
-      &recast_config.height);
+  rcCalcGridSize(bmin, bmax, config->cell_size, &grid_width, &grid_height);
 
 #ifdef DEBUG_LOGS
   Godot::print(
       "RecastPolygonMesh::build_from_raw_triangles(): grid w: {0}, h: {1}",
-      recast_config.width,
-      recast_config.height);
+      grid_width,
+      grid_height);
 #endif
 
   if (not rcCreateHeightfield(
           &recast_context,
           height_field->ref(),
-          recast_config.width,
-          recast_config.height,
-          recast_config.bmin,
-          recast_config.bmax,
-          recast_config.cs,
-          recast_config.ch))
+          grid_width,
+          grid_height,
+          bmin,
+          bmax,
+          config->cell_size,
+          config->cell_height))
   {
     ERR_PRINT("rcCreateHeightfield() failed");
     return false;
@@ -153,7 +131,7 @@ bool RecastPolygonMesh::build_from_raw_triangles(
   memset(areas, 0, triangles_num * sizeof(unsigned char));
   rcMarkWalkableTriangles(
       &recast_context,
-      recast_config.walkableSlopeAngle,
+      config->walkable_slope_angle,
       vertices,
       vertices_num,
       triangles,
@@ -168,27 +146,22 @@ bool RecastPolygonMesh::build_from_raw_triangles(
           areas,
           triangles_num,
           height_field->ref(),
-          recast_config.walkableClimb))
+          config->walkable_climb))
   {
     ERR_PRINT("rcRasterizeTriangles() failed");
     return false;
   }
 
   // TODO: make conditional
-  rcFilterLowHangingWalkableObstacles(
-      &recast_context, recast_config.walkableClimb, height_field->ref());
+  rcFilterLowHangingWalkableObstacles(&recast_context, config->walkable_climb, height_field->ref());
   rcFilterLedgeSpans(
-      &recast_context,
-      recast_config.walkableHeight,
-      recast_config.walkableClimb,
-      height_field->ref());
-  rcFilterWalkableLowHeightSpans(
-      &recast_context, recast_config.walkableHeight, height_field->ref());
+      &recast_context, config->walkable_height, config->walkable_climb, height_field->ref());
+  rcFilterWalkableLowHeightSpans(&recast_context, config->walkable_height, height_field->ref());
 
   if (not rcBuildCompactHeightfield(
           &recast_context,
-          recast_config.walkableHeight,
-          recast_config.walkableClimb,
+          config->walkable_height,
+          config->walkable_climb,
           height_field->ref(),
           compact_height_field->ref()))
   {
@@ -203,7 +176,7 @@ bool RecastPolygonMesh::build_from_raw_triangles(
 #endif
 
   if (not rcErodeWalkableArea(
-          &recast_context, recast_config.walkableRadius, compact_height_field->ref()))
+          &recast_context, config->walkable_radius, compact_height_field->ref()))
   {
     ERR_PRINT("rcErodeWalkableArea() failed");
     return false;
@@ -219,8 +192,8 @@ bool RecastPolygonMesh::build_from_raw_triangles(
           &recast_context,
           compact_height_field->ref(),
           0,
-          recast_config.minRegionArea,
-          recast_config.mergeRegionArea))
+          config->min_region_area,
+          config->merge_region_area))
   {
     ERR_PRINT("rcBuildRegions() failed");
     return false;
@@ -245,8 +218,8 @@ bool RecastPolygonMesh::build_from_raw_triangles(
   if (not rcBuildContours(
           &recast_context,
           compact_height_field->ref(),
-          recast_config.maxSimplificationError,
-          recast_config.maxEdgeLen,
+          config->max_simplification_error,
+          config->max_edge_len,
           contour_set->ref()))
   {
     ERR_PRINT("rcBuildContours() failed");
@@ -260,7 +233,7 @@ bool RecastPolygonMesh::build_from_raw_triangles(
 #endif
 
   if (not rcBuildPolyMesh(
-          &recast_context, contour_set->ref(), recast_config.maxVertsPerPoly, poly_mesh->ref()))
+          &recast_context, contour_set->ref(), config->max_verts_per_poly, poly_mesh->ref()))
   {
     ERR_PRINT("rcBuildPolyMesh() failed");
     return false;
@@ -277,8 +250,8 @@ bool RecastPolygonMesh::build_from_raw_triangles(
           &recast_context,
           poly_mesh->ref(),
           compact_height_field->ref(),
-          recast_config.detailSampleDist,
-          recast_config.detailSampleMaxError,
+          config->detail_sample_dist,
+          config->detail_sample_max_error,
           poly_mesh_detail->ref()))
   {
     ERR_PRINT("rcBuildPolyMeshDetail() failed");

@@ -13,6 +13,10 @@
 void AdvancedNavigationMesh3D::_init()
 {
   Godot::print("AdvancedNavigationMesh3D::_init()");
+  if (config.is_null())
+  {
+    config = Ref<RecastPolygonMeshConfig>(RecastPolygonMeshConfig::_new());
+  }
 }
 
 void AdvancedNavigationMesh3D::_ready()
@@ -66,12 +70,12 @@ Ref<Mesh> AdvancedNavigationMesh3D::create_debug_mesh()
 {
   auto* server =
       get_tree()->get_root()->get_node<AdvancedNavigationServer3D>("AdvancedNavigationServer3D");
-  if (server)
+  if (server == nullptr or config.is_null())
   {
-    auto nodes_to_parse = get_children();
-    return server->build_polygon_mesh(nodes_to_parse)->get_poly_mesh_detail();
+    return nullptr;
   }
-  return nullptr;
+  auto nodes_to_parse = get_children();
+  return server->build_polygon_mesh(nodes_to_parse, config)->get_poly_mesh_detail();
 }
 
 Ref<Mesh> AdvancedNavigationMesh3D::load_debug_mesh()

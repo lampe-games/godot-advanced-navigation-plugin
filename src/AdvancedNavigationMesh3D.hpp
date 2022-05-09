@@ -7,6 +7,8 @@
 #include <Spatial.hpp>
 #include <SpatialMaterial.hpp>
 
+#include "RecastPolygonMeshConfig.hpp"
+
 using namespace godot;
 
 class AdvancedNavigationMesh3D : public Spatial
@@ -34,6 +36,14 @@ class AdvancedNavigationMesh3D : public Spatial
         GODOT_METHOD_RPC_MODE_DISABLED,
         GODOT_PROPERTY_USAGE_STORAGE,
         GODOT_PROPERTY_HINT_NONE);
+    register_property<AdvancedNavigationMesh3D, Ref<RecastPolygonMeshConfig>>(
+        "config",
+        &AdvancedNavigationMesh3D::config,
+        Ref<RecastPolygonMeshConfig>(),
+        GODOT_METHOD_RPC_MODE_DISABLED,
+        GODOT_PROPERTY_USAGE_DEFAULT,
+        GODOT_PROPERTY_HINT_RESOURCE_TYPE,
+        "Resource");
   }
 
  private:
@@ -46,4 +56,5 @@ class AdvancedNavigationMesh3D : public Spatial
  private:
   MeshInstance* debug_mesh_instance{nullptr};
   bool baked{false};
+  Ref<RecastPolygonMeshConfig> config{nullptr};
 };
