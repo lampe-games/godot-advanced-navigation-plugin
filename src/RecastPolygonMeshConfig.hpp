@@ -8,13 +8,21 @@ class RecastPolygonMeshConfig : public godot::Resource
   GODOT_CLASS(RecastPolygonMeshConfig, godot::Resource);
 
  public:
-  void _init();
+  enum PartitioningAlgorithm
+  {
+    PARTITIONING_ALGORITHM_WATERSHED = 0,
+    PARTITIONING_ALGORITHM_MONOTONE,
+    PARTITIONING_ALGORITHM_LAYERS,
+  };
 
+  void _init() {}
+
+  // rcConfig
   static constexpr float default_cell_size{0.3};
   static constexpr float default_cell_height{0.2};
-  static constexpr float default_walkable_slope_angle{70}; // 45
-  static constexpr int default_walkable_height{5}; // 10
-  static constexpr int default_walkable_climb{1}; // 4
+  static constexpr float default_walkable_slope_angle{70};
+  static constexpr int default_walkable_height{5};
+  static constexpr int default_walkable_climb{1};
   static constexpr int default_walkable_radius{2};
   static constexpr int default_max_edge_len{40};
   static constexpr float default_max_simplification_error{1.3};
@@ -23,10 +31,24 @@ class RecastPolygonMeshConfig : public godot::Resource
   static constexpr int default_max_verts_per_poly{6};
   static constexpr float default_detail_sample_dist{1.8};
   static constexpr float default_detail_sample_max_error{1.0};
+  // other
+  static constexpr int default_partitioning_algorithm{PARTITIONING_ALGORITHM_WATERSHED};
+  static constexpr bool default_filter_low_hanging_walkable_obstacles{true};
+  static constexpr bool default_filter_ledge_spans{true};
+  static constexpr bool default_filter_walkable_low_height_spans{true};
 
   static void _register_methods()
   {
     // TODO: make range hints
+
+    godot::register_property<RecastPolygonMeshConfig, int>(
+        "partitioning/algorithm",
+        &RecastPolygonMeshConfig::partitioning_algorithm,
+        default_partitioning_algorithm,
+        GODOT_METHOD_RPC_MODE_DISABLED,
+        GODOT_PROPERTY_USAGE_DEFAULT,
+        GODOT_PROPERTY_HINT_ENUM,
+        "Watershed,Monotone,Layers");
 
     godot::register_property<RecastPolygonMeshConfig, float>(
         "cell/size", &RecastPolygonMeshConfig::cell_size, default_cell_size);
@@ -71,9 +93,23 @@ class RecastPolygonMeshConfig : public godot::Resource
         "detail/sample_max_error",
         &RecastPolygonMeshConfig::detail_sample_max_error,
         default_detail_sample_max_error);
+
+    godot::register_property<RecastPolygonMeshConfig, bool>(
+        "filter/low_hanging_walkable_obstacles",
+        &RecastPolygonMeshConfig::filter_low_hanging_walkable_obstacles,
+        default_filter_low_hanging_walkable_obstacles);
+    godot::register_property<RecastPolygonMeshConfig, bool>(
+        "filter/ledge_spans",
+        &RecastPolygonMeshConfig::filter_ledge_spans,
+        default_filter_ledge_spans);
+    godot::register_property<RecastPolygonMeshConfig, bool>(
+        "filter/walkable_low_height_spans",
+        &RecastPolygonMeshConfig::filter_walkable_low_height_spans,
+        default_filter_walkable_low_height_spans);
   }
 
  public:
+  // rcConfig
   float cell_size{default_cell_size}; // [Limit: > 0] [Units: wu]
   float cell_height{default_cell_height}; // [Limit: > 0] [Units: wu]
   float walkable_slope_angle{
@@ -88,4 +124,9 @@ class RecastPolygonMeshConfig : public godot::Resource
   int max_verts_per_poly{default_max_verts_per_poly}; // [Limit: >= 3]
   float detail_sample_dist{default_detail_sample_dist}; // [Limits: 0 or >= 0.9] [Units: wu]
   float detail_sample_max_error{default_detail_sample_max_error}; // [Limit: >=0] [Units: wu]
+  // other
+  int partitioning_algorithm{default_partitioning_algorithm};
+  bool filter_low_hanging_walkable_obstacles{default_filter_low_hanging_walkable_obstacles};
+  bool filter_ledge_spans{default_filter_ledge_spans};
+  bool filter_walkable_low_height_spans{default_filter_walkable_low_height_spans};
 };

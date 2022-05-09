@@ -5,7 +5,6 @@
 #include <Godot.hpp>
 #include <Mesh.hpp>
 #include <Resource.hpp>
-// #include <Ref.hpp>
 
 #include "RecastPolygonMeshConfig.hpp"
 #include "RecastWrappers.hpp"
@@ -17,12 +16,8 @@ class RecastPolygonMesh : public godot::Resource
   GODOT_CLASS(RecastPolygonMesh, godot::Resource);
 
  public:
-  RecastPolygonMesh();
-  ~RecastPolygonMesh();
+  void _init() {}
 
-  void _init();
-
-  // TODO: pass parameters
   // TODO: build_from_triangles(arrays)
   // TODO: build_from_reordered_triangles(arrays) or CCW/CW instead of reordered
   bool build_from_triangles(

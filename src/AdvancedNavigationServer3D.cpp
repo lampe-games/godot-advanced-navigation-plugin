@@ -3,16 +3,6 @@
 #include <MeshInstance.hpp>
 #include <PlaneMesh.hpp>
 
-void AdvancedNavigationServer3D::_init()
-{
-  Godot::print("AdvancedNavigationServer3D::_init()");
-}
-
-void AdvancedNavigationServer3D::_ready()
-{
-  Godot::print("AdvancedNavigationServer3D::_ready()");
-}
-
 Ref<RecastPolygonMesh> AdvancedNavigationServer3D::build_polygon_mesh(
     Array& nodes_to_parse_geometry_from,
     Ref<RecastPolygonMeshConfig> config)

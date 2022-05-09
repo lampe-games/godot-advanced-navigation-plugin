@@ -6,24 +6,9 @@
 
 #include "RecastContext.hpp"
 
-// #define DEBUG_LOGS
+// #define PIPELINE_DEBUG
 
 using namespace godot;
-
-RecastPolygonMesh::RecastPolygonMesh()
-{
-  Godot::print("RecastPolygonMesh::RecastPolygonMesh()");
-}
-
-RecastPolygonMesh::~RecastPolygonMesh()
-{
-  Godot::print("RecastPolygonMesh::~RecastPolygonMesh()");
-}
-
-void RecastPolygonMesh::_init()
-{
-  Godot::print("RecastPolygonMesh::_init()");
-}
 
 bool RecastPolygonMesh::build_from_triangles(
     PoolVector3Array& vertices,
@@ -62,7 +47,7 @@ bool RecastPolygonMesh::build_from_raw_triangles(
     const int triangles_num,
     Ref<RecastPolygonMeshConfig> config)
 {
-#ifdef DEBUG_LOGS
+#ifdef PIPELINE_DEBUG
   Godot::print(
       "RecastPolygonMesh::build_from_raw_triangles(,vertices_num={0},,triangles_num={1})",
       vertices_num,
@@ -93,7 +78,7 @@ bool RecastPolygonMesh::build_from_raw_triangles(
 
   rcCalcBounds(vertices, vertices_num, bmin, bmax);
 
-#ifdef DEBUG_LOGS
+#ifdef PIPELINE_DEBUG
   Godot::print(
       "RecastPolygonMesh::build_from_raw_triangles(): bmin: ({0},{1},{2}), bmax: ({3},{4},{5})",
       bmin[0],
@@ -106,7 +91,7 @@ bool RecastPolygonMesh::build_from_raw_triangles(
 
   rcCalcGridSize(bmin, bmax, config->cell_size, &grid_width, &grid_height);
 
-#ifdef DEBUG_LOGS
+#ifdef PIPELINE_DEBUG
   Godot::print(
       "RecastPolygonMesh::build_from_raw_triangles(): grid w: {0}, h: {1}",
       grid_width,
@@ -152,11 +137,22 @@ bool RecastPolygonMesh::build_from_raw_triangles(
     return false;
   }
 
-  // TODO: make conditional
-  rcFilterLowHangingWalkableObstacles(&recast_context, config->walkable_climb, height_field->ref());
-  rcFilterLedgeSpans(
-      &recast_context, config->walkable_height, config->walkable_climb, height_field->ref());
-  rcFilterWalkableLowHeightSpans(&recast_context, config->walkable_height, height_field->ref());
+  if (config->filter_low_hanging_walkable_obstacles)
+  {
+    rcFilterLowHangingWalkableObstacles(
+        &recast_context, config->walkable_climb, height_field->ref());
+  }
+
+  if (config->filter_ledge_spans)
+  {
+    rcFilterLedgeSpans(
+        &recast_context, config->walkable_height, config->walkable_climb, height_field->ref());
+  }
+
+  if (config->filter_walkable_low_height_spans)
+  {
+    rcFilterWalkableLowHeightSpans(&recast_context, config->walkable_height, height_field->ref());
+  }
 
   if (not rcBuildCompactHeightfield(
           &recast_context,
@@ -169,7 +165,7 @@ bool RecastPolygonMesh::build_from_raw_triangles(
     return false;
   }
 
-#ifdef DEBUG_LOGS
+#ifdef PIPELINE_DEBUG
   Godot::print(
       "RecastPolygonMesh::build_from_raw_triangles(): compact height field's spanCount: {0}",
       compact_height_field->ref().spanCount);
@@ -182,34 +178,57 @@ bool RecastPolygonMesh::build_from_raw_triangles(
     return false;
   }
 
-  // TODO: implement all partitioning types
-  if (not rcBuildDistanceField(&recast_context, compact_height_field->ref()))
+  const int border_size = 0;
+  switch (config->partitioning_algorithm)
   {
-    ERR_PRINT("rcBuildDistanceField() failed");
-    return false;
+    case RecastPolygonMeshConfig::PARTITIONING_ALGORITHM_WATERSHED:
+    {
+      if (not rcBuildDistanceField(&recast_context, compact_height_field->ref()))
+      {
+        ERR_PRINT("rcBuildDistanceField() failed");
+        return false;
+      }
+      if (not rcBuildRegions(
+              &recast_context,
+              compact_height_field->ref(),
+              border_size,
+              config->min_region_area,
+              config->merge_region_area))
+      {
+        ERR_PRINT("rcBuildRegions() failed");
+        return false;
+      }
+      break;
+    }
+    case RecastPolygonMeshConfig::PARTITIONING_ALGORITHM_MONOTONE:
+    {
+      if (not rcBuildRegionsMonotone(
+              &recast_context,
+              *compact_height_field->ptr(),
+              border_size,
+              config->min_region_area,
+              config->merge_region_area))
+      {
+        ERR_PRINT("rcBuildRegionsMonotone() failed");
+        return false;
+      }
+      break;
+    }
+    case RecastPolygonMeshConfig::PARTITIONING_ALGORITHM_LAYERS:
+    {
+      if (not rcBuildLayerRegions(
+              &recast_context, *compact_height_field->ptr(), border_size, config->min_region_area))
+      {
+        ERR_PRINT("rcBuildLayerRegions() failed");
+        return false;
+      }
+      break;
+    }
+    default:
+      return false;
   }
-  if (not rcBuildRegions(
-          &recast_context,
-          compact_height_field->ref(),
-          0,
-          config->min_region_area,
-          config->merge_region_area))
-  {
-    ERR_PRINT("rcBuildRegions() failed");
-    return false;
-  }
-  // if (not !rcBuildRegionsMonotone(
-  //         &recast_context,
-  //         *compact_height_field->ptr(),
-  //         0,
-  //         recast_config.minRegionArea,
-  //         recast_config.mergeRegionArea))
-  // {
-  //   ERR_PRINT("rcBuildRegionsMonotone() failed");
-  //   return false;
-  // }
 
-#ifdef DEBUG_LOGS
+#ifdef PIPELINE_DEBUG
   Godot::print(
       "RecastPolygonMesh::build_from_raw_triangles(): compact height field's spanCount: {0}",
       compact_height_field->ref().spanCount);
@@ -226,7 +245,7 @@ bool RecastPolygonMesh::build_from_raw_triangles(
     return false;
   }
 
-#ifdef DEBUG_LOGS
+#ifdef PIPELINE_DEBUG
   Godot::print(
       "RecastPolygonMesh::build_from_raw_triangles(): contour set's nconts: {0}",
       contour_set->ptr()->nconts);
@@ -239,7 +258,7 @@ bool RecastPolygonMesh::build_from_raw_triangles(
     return false;
   }
 
-#ifdef DEBUG_LOGS
+#ifdef PIPELINE_DEBUG
   Godot::print(
       "RecastPolygonMesh::build_from_raw_triangles(): poly mesh'es nverts: {0}, npolys: {1}",
       poly_mesh->ptr()->nverts,
@@ -258,7 +277,7 @@ bool RecastPolygonMesh::build_from_raw_triangles(
     return false;
   }
 
-#ifdef DEBUG_LOGS
+#ifdef PIPELINE_DEBUG
   Godot::print(
       "RecastPolygonMesh::build_from_raw_triangles(): poly mesh detail's nverts: {0}, nmeshes: {1}",
       poly_mesh_detail->ptr()->nverts,
