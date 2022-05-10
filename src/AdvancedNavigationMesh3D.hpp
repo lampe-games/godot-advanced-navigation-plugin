@@ -7,6 +7,7 @@
 #include <Spatial.hpp>
 #include <SpatialMaterial.hpp>
 
+#include "DetourNavigationMesh.hpp"
 #include "RecastPolygonMeshConfig.hpp"
 
 using namespace godot;
@@ -29,10 +30,10 @@ class AdvancedNavigationMesh3D : public Spatial
     register_method("bake", &AdvancedNavigationMesh3D::bake);
     register_method("clear", &AdvancedNavigationMesh3D::clear);
 
-    register_property<AdvancedNavigationMesh3D, bool>(
-        "baked",
-        &AdvancedNavigationMesh3D::baked,
-        false,
+    register_property<AdvancedNavigationMesh3D, Ref<DetourNavigationMesh>>(
+        "detour_navigation_mesh",
+        &AdvancedNavigationMesh3D::detour_navigation_mesh,
+        Ref<RecastPolygonMeshConfig>(),
         GODOT_METHOD_RPC_MODE_DISABLED,
         GODOT_PROPERTY_USAGE_STORAGE,
         GODOT_PROPERTY_HINT_NONE);
@@ -55,6 +56,6 @@ class AdvancedNavigationMesh3D : public Spatial
 
  private:
   MeshInstance* debug_mesh_instance{nullptr};
-  bool baked{false};
+  Ref<DetourNavigationMesh> detour_navigation_mesh{nullptr};
   Ref<RecastPolygonMeshConfig> config{nullptr};
 };

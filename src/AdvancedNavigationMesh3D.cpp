@@ -20,7 +20,7 @@ void AdvancedNavigationMesh3D::_init()
 
 void AdvancedNavigationMesh3D::_ready()
 {
-  Godot::print("AdvancedNavigationMesh3D::_ready(): baked: {0}", baked);
+  Godot::print("AdvancedNavigationMesh3D::_ready(): baked: {0}", detour_navigation_mesh.is_valid());
   if (get_tree()->is_debugging_navigation_hint() or Engine::get_singleton()->is_editor_hint())
   {
     create_debug_mesh_instance();
@@ -33,7 +33,7 @@ void AdvancedNavigationMesh3D::bake()
   if (get_tree()->is_debugging_navigation_hint() or Engine::get_singleton()->is_editor_hint())
   {
     update_debug_mesh_instance(create_debug_mesh());
-    baked = true;
+    detour_navigation_mesh = Ref<DetourNavigationMesh>(DetourNavigationMesh::_new());
   }
 }
 
@@ -42,7 +42,7 @@ void AdvancedNavigationMesh3D::clear()
   if (get_tree()->is_debugging_navigation_hint() or Engine::get_singleton()->is_editor_hint())
   {
     update_debug_mesh_instance(Ref<Mesh>());
-    baked = false;
+    detour_navigation_mesh = Ref<DetourNavigationMesh>();
   }
 }
 
@@ -74,7 +74,7 @@ Ref<Mesh> AdvancedNavigationMesh3D::create_debug_mesh()
 
 Ref<Mesh> AdvancedNavigationMesh3D::load_debug_mesh()
 {
-  if (not baked)
+  if (detour_navigation_mesh.is_null())
   {
     return nullptr;
   }
