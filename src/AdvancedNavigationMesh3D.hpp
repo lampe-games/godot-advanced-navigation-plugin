@@ -31,8 +31,8 @@ class AdvancedNavigationMesh3D : public Spatial
     register_method("clear", &AdvancedNavigationMesh3D::clear);
 
     register_property<AdvancedNavigationMesh3D, Ref<DetourNavigationMesh>>(
-        "detour_navigation_mesh",
-        &AdvancedNavigationMesh3D::detour_navigation_mesh,
+        "navigation_mesh",
+        &AdvancedNavigationMesh3D::navigation_mesh,
         Ref<RecastPolygonMeshConfig>(),
         GODOT_METHOD_RPC_MODE_DISABLED,
         GODOT_PROPERTY_USAGE_STORAGE,
@@ -56,6 +56,6 @@ class AdvancedNavigationMesh3D : public Spatial
 
  private:
   MeshInstance* debug_mesh_instance{nullptr};
-  Ref<DetourNavigationMesh> detour_navigation_mesh{nullptr};
+  Ref<DetourNavigationMesh> navigation_mesh{nullptr};
   Ref<RecastPolygonMeshConfig> config{nullptr};
 };

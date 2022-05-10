@@ -20,7 +20,7 @@ void AdvancedNavigationMesh3D::_init()
 
 void AdvancedNavigationMesh3D::_ready()
 {
-  Godot::print("AdvancedNavigationMesh3D::_ready(): baked: {0}", detour_navigation_mesh.is_valid());
+  Godot::print("AdvancedNavigationMesh3D::_ready(): baked: {0}", navigation_mesh.is_valid());
   if (get_tree()->is_debugging_navigation_hint() or Engine::get_singleton()->is_editor_hint())
   {
     create_debug_mesh_instance();
@@ -32,8 +32,22 @@ void AdvancedNavigationMesh3D::bake()
 {
   if (get_tree()->is_debugging_navigation_hint() or Engine::get_singleton()->is_editor_hint())
   {
-    update_debug_mesh_instance(create_debug_mesh());
-    detour_navigation_mesh = Ref<DetourNavigationMesh>(DetourNavigationMesh::_new());
+    // update_debug_mesh_instance(create_debug_mesh());
+    auto* server =
+        get_tree()->get_root()->get_node<AdvancedNavigationServer3D>("AdvancedNavigationServer3D");
+    if (server == nullptr or config.is_null())
+    {
+      return;
+    }
+    auto nodes_to_parse = get_children();
+    auto polygon_mesh = server->build_polygon_mesh(nodes_to_parse, config);
+    //
+    auto a_navigation_mesh = server->build_navigation_mesh(polygon_mesh);
+    if (a_navigation_mesh.is_valid())
+    {
+      navigation_mesh = a_navigation_mesh;
+      update_debug_mesh_instance(navigation_mesh->get_detailed_mesh());
+    }
   }
 }
 
@@ -42,7 +56,7 @@ void AdvancedNavigationMesh3D::clear()
   if (get_tree()->is_debugging_navigation_hint() or Engine::get_singleton()->is_editor_hint())
   {
     update_debug_mesh_instance(Ref<Mesh>());
-    detour_navigation_mesh = Ref<DetourNavigationMesh>();
+    navigation_mesh = Ref<DetourNavigationMesh>();
   }
 }
 
@@ -74,7 +88,7 @@ Ref<Mesh> AdvancedNavigationMesh3D::create_debug_mesh()
 
 Ref<Mesh> AdvancedNavigationMesh3D::load_debug_mesh()
 {
-  if (detour_navigation_mesh.is_null())
+  if (navigation_mesh.is_null())
   {
     return nullptr;
   }

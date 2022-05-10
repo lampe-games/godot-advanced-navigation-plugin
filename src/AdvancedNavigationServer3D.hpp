@@ -4,6 +4,7 @@
 #include <Mesh.hpp>
 #include <Node.hpp>
 
+#include "DetourNavigationMesh.hpp"
 #include "RecastPolygonMesh.hpp"
 
 using namespace godot;
@@ -18,6 +19,8 @@ class AdvancedNavigationServer3D : public Node
   Ref<RecastPolygonMesh> build_polygon_mesh(
       Array& nodes_to_parse_geometry_from,
       Ref<RecastPolygonMeshConfig>);
+  // TODO: config(?)
+  Ref<DetourNavigationMesh> build_navigation_mesh(Ref<RecastPolygonMesh>);
 
   Array get_triangles_from_geometry(Array& nodes_to_parse_geometry_from);
 

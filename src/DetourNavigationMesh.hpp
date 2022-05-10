@@ -1,7 +1,13 @@
 #pragma once
 
+#include <memory>
+
 #include <Godot.hpp>
+#include <Ref.hpp>
 #include <Resource.hpp>
+
+#include "DetourWrappers.hpp"
+#include "RecastPolygonMesh.hpp"
 
 class DetourNavigationMesh : public godot::Resource
 {
@@ -9,6 +15,11 @@ class DetourNavigationMesh : public godot::Resource
 
  public:
   void _init() {}
+
+  // TODO: config
+  bool build_from_polygon_mesh(godot::Ref<RecastPolygonMesh>);
+
+  godot::Ref<godot::Mesh> get_detailed_mesh();
 
   static void _register_methods()
   {
@@ -23,4 +34,5 @@ class DetourNavigationMesh : public godot::Resource
 
  private:
   bool dummy{false};
+  std::unique_ptr<Detour::NavMesh> detour_nav_mesh{nullptr};
 };

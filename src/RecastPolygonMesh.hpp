@@ -31,6 +31,8 @@ class RecastPolygonMesh : public godot::Resource
       const int triangles_num,
       godot::Ref<RecastPolygonMeshConfig>);
 
+  bool is_baked() { return simple_recast_mesh and detailed_recast_mesh; }
+
   godot::Ref<godot::Mesh> get_poly_mesh() const;
   godot::Ref<godot::Mesh> get_poly_mesh_detail() const;
 
@@ -39,6 +41,10 @@ class RecastPolygonMesh : public godot::Resource
     // register_method("build_from_plane_mesh", &RecastPolygonMesh::build_from_plane_mesh);
     // register_method("get_mesh", &RecastPolygonMesh::get_mesh);
   }
+
+ public:
+  const rcPolyMesh& get_recast_poly_mesh() { return simple_recast_mesh->ref(); }
+  const rcPolyMeshDetail& get_recast_poly_mesh_detail() { return detailed_recast_mesh->ref(); }
 
  private:
   std::unique_ptr<Recast::PolyMesh> simple_recast_mesh{nullptr};
