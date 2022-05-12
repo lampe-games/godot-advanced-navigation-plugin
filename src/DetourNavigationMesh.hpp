@@ -21,11 +21,15 @@ class DetourNavigationMesh : public godot::Resource
 
   godot::Ref<godot::Mesh> get_detailed_mesh();
 
+  void set_dummy(bool);
+  bool get_dummy() const;
+
   static void _register_methods()
   {
     godot::register_property<DetourNavigationMesh, bool>(
         "dummy",
-        &DetourNavigationMesh::dummy,
+        &DetourNavigationMesh::set_dummy,
+        &DetourNavigationMesh::get_dummy,
         false,
         GODOT_METHOD_RPC_MODE_DISABLED,
         GODOT_PROPERTY_USAGE_STORAGE,
@@ -33,6 +37,6 @@ class DetourNavigationMesh : public godot::Resource
   }
 
  private:
-  bool dummy{false};
+  // bool dummy{false};
   std::unique_ptr<Detour::NavMesh> detour_nav_mesh{nullptr};
 };

@@ -2,6 +2,7 @@
 
 #include <DetourNavMesh.h>
 
+// TODO: implement move oprators and make this class a template
 namespace Detour
 {
 class NavMesh

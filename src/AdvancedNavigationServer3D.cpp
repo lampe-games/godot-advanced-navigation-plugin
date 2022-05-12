@@ -12,8 +12,11 @@ Ref<RecastPolygonMesh> AdvancedNavigationServer3D::build_polygon_mesh(
   PoolVector3Array triangle_vertices = triangles[Mesh::ARRAY_VERTEX];
   PoolIntArray triangle_indices = triangles[Mesh::ARRAY_INDEX];
   Ref<RecastPolygonMesh> rc_poly_mesh{RecastPolygonMesh::_new()};
-  rc_poly_mesh->build_from_triangles(triangle_vertices, triangle_indices, config);
-  return rc_poly_mesh;
+  if (rc_poly_mesh->build_from_triangles(triangle_vertices, triangle_indices, config))
+  {
+    return rc_poly_mesh;
+  }
+  return nullptr;
 }
 
 Ref<DetourNavigationMesh> AdvancedNavigationServer3D::build_navigation_mesh(

@@ -20,11 +20,12 @@ void AdvancedNavigationMesh3D::_init()
 
 void AdvancedNavigationMesh3D::_ready()
 {
-  Godot::print("AdvancedNavigationMesh3D::_ready(): baked: {0}", navigation_mesh.is_valid());
+  Godot::print(
+      "AdvancedNavigationMesh3D::_ready(): already baked: {0}", navigation_mesh.is_valid());
   if (get_tree()->is_debugging_navigation_hint() or Engine::get_singleton()->is_editor_hint())
   {
     create_debug_mesh_instance();
-    update_debug_mesh_instance(load_debug_mesh());
+    update_debug_mesh_instance(get_debug_mesh());
   }
 }
 
@@ -32,7 +33,6 @@ void AdvancedNavigationMesh3D::bake()
 {
   if (get_tree()->is_debugging_navigation_hint() or Engine::get_singleton()->is_editor_hint())
   {
-    // update_debug_mesh_instance(create_debug_mesh());
     auto* server =
         get_tree()->get_root()->get_node<AdvancedNavigationServer3D>("AdvancedNavigationServer3D");
     if (server == nullptr or config.is_null())
@@ -41,12 +41,15 @@ void AdvancedNavigationMesh3D::bake()
     }
     auto nodes_to_parse = get_children();
     auto polygon_mesh = server->build_polygon_mesh(nodes_to_parse, config);
-    //
+    if (polygon_mesh.is_null())
+    {
+      return;
+    }
     auto a_navigation_mesh = server->build_navigation_mesh(polygon_mesh);
     if (a_navigation_mesh.is_valid())
     {
       navigation_mesh = a_navigation_mesh;
-      update_debug_mesh_instance(navigation_mesh->get_detailed_mesh());
+      update_debug_mesh_instance(get_debug_mesh());
     }
   }
 }
@@ -74,25 +77,13 @@ void AdvancedNavigationMesh3D::update_debug_mesh_instance(Ref<Mesh> mesh)
   debug_mesh_instance->set_mesh(mesh);
 }
 
-Ref<Mesh> AdvancedNavigationMesh3D::create_debug_mesh()
-{
-  auto* server =
-      get_tree()->get_root()->get_node<AdvancedNavigationServer3D>("AdvancedNavigationServer3D");
-  if (server == nullptr or config.is_null())
-  {
-    return nullptr;
-  }
-  auto nodes_to_parse = get_children();
-  return server->build_polygon_mesh(nodes_to_parse, config)->get_poly_mesh_detail();
-}
-
-Ref<Mesh> AdvancedNavigationMesh3D::load_debug_mesh()
+Ref<Mesh> AdvancedNavigationMesh3D::get_debug_mesh()
 {
   if (navigation_mesh.is_null())
   {
     return nullptr;
   }
-  return create_debug_mesh();
+  return navigation_mesh->get_detailed_mesh();
 }
 
 Ref<Material> AdvancedNavigationMesh3D::create_debug_mesh_instance_material()

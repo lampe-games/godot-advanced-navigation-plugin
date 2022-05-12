@@ -50,8 +50,7 @@ class AdvancedNavigationMesh3D : public Spatial
  private:
   void create_debug_mesh_instance();
   void update_debug_mesh_instance(Ref<Mesh>);
-  Ref<Mesh> create_debug_mesh();
-  Ref<Mesh> load_debug_mesh();
+  Ref<Mesh> get_debug_mesh();
   Ref<Material> create_debug_mesh_instance_material();
 
  private:

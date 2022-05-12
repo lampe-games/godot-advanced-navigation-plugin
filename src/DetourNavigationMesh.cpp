@@ -143,3 +143,16 @@ Ref<Mesh> DetourNavigationMesh::get_detailed_mesh()
   resulting_mesh->add_surface_from_arrays(Mesh::PRIMITIVE_TRIANGLES, arrays);
   return resulting_mesh;
 }
+
+void DetourNavigationMesh::set_dummy(bool p)
+{
+  // Godot::print("set_dummy({0})", p);
+  Godot::print("set_dummy({0}) {1}", p, this);
+}
+
+bool DetourNavigationMesh::get_dummy() const
+{
+  Godot::print("get_dummy() {0}", this);
+  // Godot::print("get_dummy()");
+  return true;
+}
