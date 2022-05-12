@@ -1,7 +1,9 @@
+// TODO: figure out how to not use private detour method
 #define private public
 #include "DetourNavigationMesh.hpp"
 
 #include <ArrayMesh.hpp>
+#include <DetourCommon.h>
 #include <DetourNavMeshBuilder.h>
 
 using namespace godot;
@@ -29,7 +31,9 @@ bool DetourNavigationMesh::build_from_polygon_mesh(godot::Ref<RecastPolygonMesh>
   params.detailVertsCount = recast_poly_mesh_detail.nverts;
   params.detailTris = recast_poly_mesh_detail.tris;
   params.detailTriCount = recast_poly_mesh_detail.ntris;
-  Godot::print("dvc {0} dtc {1}", recast_poly_mesh_detail.nverts, recast_poly_mesh_detail.ntris);
+
+  dtVcopy(params.bmin, recast_poly_mesh.bmin);
+  dtVcopy(params.bmax, recast_poly_mesh.bmax);
 
   // TODO: config
   params.walkableHeight = 0.2 * 5; // [wu]
@@ -77,12 +81,17 @@ Ref<Mesh> DetourNavigationMesh::get_detailed_mesh()
               "tile->header->detailMeshCount, not implemented!");
     Godot::print(
         "tile, polyCount: {0} vertCount: {1} detailMeshCount: "
-        "{2} detailVertCount: {3} detailTriCount: {4}",
+        "{2} detailVertCount: {3} detailTriCount: {4} x: {5} y: {6} l: {7} bmin: {8}, bmax: {9}",
         tile->header->polyCount,
         tile->header->vertCount,
         tile->header->detailMeshCount,
         tile->header->detailVertCount,
-        tile->header->detailTriCount);
+        tile->header->detailTriCount,
+        tile->header->x,
+        tile->header->y,
+        tile->header->layer,
+        Vector3(tile->header->bmin[0], tile->header->bmin[1], tile->header->bmin[2]),
+        Vector3(tile->header->bmax[0], tile->header->bmax[1], tile->header->bmax[2]));
     for (int i = 0; i < tile->header->detailMeshCount; i++)
     {
       dtPolyDetail& sm = tile->detailMeshes[i];
@@ -111,24 +120,12 @@ Ref<Mesh> DetourNavigationMesh::get_detailed_mesh()
   indices.resize(tile->header->detailTriCount * 3);
   PoolIntArray::Write indices_writer = indices.write();
   unsigned next_index_index = 0;
-  Godot::print(
-      "tile, polyCount: {0} vertCount: {1} detailMeshCount: "
-      "{2} detailVertCount: {3} detailTriCount: {4} x: {5} y: {6} l: {7]",
-      tile->header->polyCount,
-      tile->header->vertCount,
-      tile->header->detailMeshCount,
-      tile->header->detailVertCount,
-      tile->header->detailTriCount,
-      tile->header->x,
-      tile->header->y,
-      tile->header->layer);
   for (int submesh_index = 0; submesh_index < tile->header->detailMeshCount; submesh_index++)
   {
     dtPoly& poly = tile->polys[submesh_index];
     dtPolyDetail& submesh = tile->detailMeshes[submesh_index];
     for (unsigned int triangle_index = 0; triangle_index < submesh.triCount; triangle_index++)
     {
-      // Godot::print("wtf {0}", submesh.triBase * 4 + triangle_index * 4 + 0);
       indices_writer[next_index_index++] =
           poly.verts[tile->detailTris[submesh.triBase * 4 + triangle_index * 4 + 0]];
       indices_writer[next_index_index++] =
@@ -136,27 +133,7 @@ Ref<Mesh> DetourNavigationMesh::get_detailed_mesh()
       indices_writer[next_index_index++] =
           poly.verts[tile->detailTris[submesh.triBase * 4 + triangle_index * 4 + 1]];
     }
-    Godot::print(
-        "submesh, vertBase: {0}, triBase: {1}, vertCount: {2}, triCount: {3}",
-        submesh.vertBase,
-        submesh.triBase,
-        submesh.vertCount,
-        submesh.triCount);
   }
-  Godot::print("vvv {0} iii {1}", vertices, indices);
-  // for (int triangle_index = 0; triangle_index < tile->header->detailTriCount * 3;
-  //      triangle_index++)
-  // {
-  //   indices_writer[triangle_index * 3 + 0] = tile->detailTris[triangle_index * 4 + 0];
-  //   indices_writer[triangle_index * 3 + 1] = tile->detailTris[triangle_index * 4 + 2];
-  //   indices_writer[triangle_index * 3 + 2] = tile->detailTris[triangle_index * 4 + 1];
-  //   // Godot::print(
-  //   //     "wtf {0} {1} {2} {3}",
-  //   //     (int)tile->detailTris[triangle_index * 4 + 0],
-  //   //     (int)tile->detailTris[triangle_index * 4 + 2],
-  //   //     (int)tile->detailTris[triangle_index * 4 + 1],
-  //   //     (int)tile->detailTris[triangle_index * 4 + 3]);
-  // }
 
   Array arrays;
   arrays.resize(Mesh::ARRAY_MAX);
