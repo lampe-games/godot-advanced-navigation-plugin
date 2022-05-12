@@ -144,15 +144,17 @@ Ref<Mesh> DetourNavigationMesh::get_detailed_mesh()
   return resulting_mesh;
 }
 
-void DetourNavigationMesh::set_dummy(bool p)
+void DetourNavigationMesh::deserialize_detour_nav_mesh(PoolByteArray p)
 {
-  // Godot::print("set_dummy({0})", p);
-  Godot::print("set_dummy({0}) {1}", p, this);
+  Godot::print("deserialize_detour_nav_mesh({0}) {1}", p, this);
 }
 
-bool DetourNavigationMesh::get_dummy() const
+PoolByteArray DetourNavigationMesh::serialize_detour_nav_mesh() const
 {
-  Godot::print("get_dummy() {0}", this);
-  // Godot::print("get_dummy()");
-  return true;
+  Godot::print("serialize_detour_nav_mesh() {0}", this);
+  PoolByteArray serialized_detour_nav_mesh;
+  serialized_detour_nav_mesh.append(0);
+  serialized_detour_nav_mesh.append(1);
+  serialized_detour_nav_mesh.append(2);
+  return serialized_detour_nav_mesh;
 }
