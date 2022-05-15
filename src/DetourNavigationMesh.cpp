@@ -144,17 +144,46 @@ Ref<Mesh> DetourNavigationMesh::get_detailed_mesh()
   return resulting_mesh;
 }
 
-void DetourNavigationMesh::deserialize_detour_nav_mesh(PoolByteArray p)
+void DetourNavigationMesh::deserialize_detour_nav_mesh(PoolByteArray serialized_detour_nav_mesh)
 {
-  Godot::print("deserialize_detour_nav_mesh({0}) {1}", p, this);
+  // TODO: handle once multiple tiles supported
+  if (serialized_detour_nav_mesh.size() == 0 or detour_nav_mesh)
+  {
+    return;
+  }
+  unsigned char* detour_nav_mesh_data =
+      static_cast<unsigned char*>(dtAlloc(serialized_detour_nav_mesh.size(), DT_ALLOC_PERM));
+  PoolByteArray::Read bytes_reader = serialized_detour_nav_mesh.read();
+  std::copy(
+      bytes_reader.ptr(),
+      bytes_reader.ptr() + serialized_detour_nav_mesh.size(),
+      detour_nav_mesh_data);
+  std::unique_ptr<Detour::NavMesh> a_detour_nav_mesh = std::make_unique<Detour::NavMesh>();
+  if (DT_SUCCESS !=
+      a_detour_nav_mesh->ref().init(
+          detour_nav_mesh_data, serialized_detour_nav_mesh.size(), DT_TILE_FREE_DATA))
+  {
+    ERR_PRINT("dtNavMesh.init() failed");
+    return;
+  }
+  detour_nav_mesh = std::move(a_detour_nav_mesh);
 }
 
 PoolByteArray DetourNavigationMesh::serialize_detour_nav_mesh() const
 {
-  Godot::print("serialize_detour_nav_mesh() {0}", this);
   PoolByteArray serialized_detour_nav_mesh;
-  serialized_detour_nav_mesh.append(0);
-  serialized_detour_nav_mesh.append(1);
-  serialized_detour_nav_mesh.append(2);
+  if (not detour_nav_mesh)
+  {
+    return serialized_detour_nav_mesh;
+  }
+  // TODO: iterate tiles
+  const dtMeshTile* tile = detour_nav_mesh->ref().getTile(0);
+  if (tile == nullptr or tile->dataSize <= 0)
+  {
+    return serialized_detour_nav_mesh;
+  }
+  serialized_detour_nav_mesh.resize(tile->dataSize);
+  PoolByteArray::Write bytes_writer = serialized_detour_nav_mesh.write();
+  std::copy(tile->data, tile->data + tile->dataSize, bytes_writer.ptr());
   return serialized_detour_nav_mesh;
 }
