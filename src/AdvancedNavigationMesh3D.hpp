@@ -7,8 +7,8 @@
 #include <Spatial.hpp>
 #include <SpatialMaterial.hpp>
 
+#include "AdvancedNavigationMesh3DConfig.hpp"
 #include "DetourNavigationMesh.hpp"
-#include "RecastPolygonMeshConfig.hpp"
 
 using namespace godot;
 
@@ -33,14 +33,14 @@ class AdvancedNavigationMesh3D : public Spatial
     register_property<AdvancedNavigationMesh3D, Ref<DetourNavigationMesh>>(
         "navigation_mesh",
         &AdvancedNavigationMesh3D::navigation_mesh,
-        Ref<RecastPolygonMeshConfig>(),
+        Ref<DetourNavigationMesh>(),
         GODOT_METHOD_RPC_MODE_DISABLED,
         GODOT_PROPERTY_USAGE_STORAGE,
         GODOT_PROPERTY_HINT_NONE);
-    register_property<AdvancedNavigationMesh3D, Ref<RecastPolygonMeshConfig>>(
+    register_property<AdvancedNavigationMesh3D, Ref<AdvancedNavigationMesh3DConfig>>(
         "config",
         &AdvancedNavigationMesh3D::config,
-        Ref<RecastPolygonMeshConfig>(),
+        Ref<AdvancedNavigationMesh3DConfig>(),
         GODOT_METHOD_RPC_MODE_DISABLED,
         GODOT_PROPERTY_USAGE_DEFAULT,
         GODOT_PROPERTY_HINT_RESOURCE_TYPE,
@@ -56,5 +56,5 @@ class AdvancedNavigationMesh3D : public Spatial
  private:
   MeshInstance* debug_mesh_instance{nullptr};
   Ref<DetourNavigationMesh> navigation_mesh{nullptr};
-  Ref<RecastPolygonMeshConfig> config{nullptr};
+  Ref<AdvancedNavigationMesh3DConfig> config{nullptr};
 };
