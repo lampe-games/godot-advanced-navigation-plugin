@@ -14,7 +14,7 @@ void AdvancedNavigationMesh3D::_init()
 {
   if (config.is_null())
   {
-    config = Ref<AdvancedNavigationMesh3DConfig>(AdvancedNavigationMesh3DConfig::_new());
+    config = Ref<RecastPolygonMeshConfig>(RecastPolygonMeshConfig::_new());
   }
 }
 
@@ -40,7 +40,7 @@ void AdvancedNavigationMesh3D::bake()
       return;
     }
     auto nodes_to_parse = get_children();
-    auto polygon_mesh = server->build_polygon_mesh(nodes_to_parse, config->recast_config);
+    auto polygon_mesh = server->build_polygon_mesh(nodes_to_parse, config);
     if (polygon_mesh.is_null())
     {
       return;
