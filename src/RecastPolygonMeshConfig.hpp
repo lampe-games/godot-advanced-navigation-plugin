@@ -38,6 +38,8 @@ class RecastPolygonMeshConfig : public godot::Resource
   static constexpr bool default_filter_low_hanging_walkable_obstacles{true};
   static constexpr bool default_filter_ledge_spans{true};
   static constexpr bool default_filter_walkable_low_height_spans{true};
+  static constexpr bool default_pipeline_logs{false};
+  static constexpr bool default_performance_logs{false};
 
   static void _register_methods()
   {
@@ -117,6 +119,13 @@ class RecastPolygonMeshConfig : public godot::Resource
         "custom_aabb_enabled/bmin", &RecastPolygonMeshConfig::bmin, godot::Vector3(-10, -10, -10));
     godot::register_property<RecastPolygonMeshConfig, godot::Vector3>(
         "custom_aabb_enabled/bmax", &RecastPolygonMeshConfig::bmax, godot::Vector3(10, 10, 10));
+
+    godot::register_property<RecastPolygonMeshConfig, bool>(
+        "debug/pipeline_logs", &RecastPolygonMeshConfig::pipeline_logs, default_pipeline_logs);
+    godot::register_property<RecastPolygonMeshConfig, bool>(
+        "debug/performance_logs",
+        &RecastPolygonMeshConfig::performance_logs,
+        default_performance_logs);
   }
 
  public:
@@ -143,4 +152,6 @@ class RecastPolygonMeshConfig : public godot::Resource
   bool filter_low_hanging_walkable_obstacles{default_filter_low_hanging_walkable_obstacles};
   bool filter_ledge_spans{default_filter_ledge_spans};
   bool filter_walkable_low_height_spans{default_filter_walkable_low_height_spans};
+  bool pipeline_logs{default_pipeline_logs};
+  bool performance_logs{default_performance_logs};
 };

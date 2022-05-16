@@ -16,6 +16,12 @@ bool DetourNavigationMesh::build_from_polygon_mesh(godot::Ref<RecastPolygonMesh>
   }
   const rcPolyMesh& recast_poly_mesh = polygon_mesh->get_recast_poly_mesh();
   const rcPolyMeshDetail& recast_poly_mesh_detail = polygon_mesh->get_recast_poly_mesh_detail();
+
+  if (recast_poly_mesh.nverts == 0 or recast_poly_mesh_detail.nverts == 0)
+  {
+    ERR_PRINT("recast pipeline built empty mesh");
+    return false;
+  }
   dtNavMeshCreateParams params{};
 
   params.verts = recast_poly_mesh.verts;

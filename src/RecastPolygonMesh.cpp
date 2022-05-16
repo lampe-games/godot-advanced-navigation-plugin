@@ -47,12 +47,13 @@ bool RecastPolygonMesh::build_from_raw_triangles(
     const int triangles_num,
     Ref<RecastPolygonMeshConfig> config)
 {
-#ifdef PIPELINE_DEBUG
-  Godot::print(
-      "RecastPolygonMesh::build_from_raw_triangles(,vertices_num={0},,triangles_num={1})",
-      vertices_num,
-      triangles_num);
-#endif
+  if (config->pipeline_logs)
+  {
+    Godot::print(
+        "RecastPolygonMesh::build_from_raw_triangles(,vertices_num={0},,triangles_num={1})",
+        vertices_num,
+        triangles_num);
+  }
 
   std::unique_ptr<Recast::Heightfield> height_field{std::make_unique<Recast::Heightfield>()};
   std::unique_ptr<Recast::CompactHeightfield> compact_height_field{
@@ -90,25 +91,27 @@ bool RecastPolygonMesh::build_from_raw_triangles(
     rcCalcBounds(vertices, vertices_num, bmin, bmax);
   }
 
-#ifdef PIPELINE_DEBUG
-  Godot::print(
-      "RecastPolygonMesh::build_from_raw_triangles(): bmin: ({0},{1},{2}), bmax: ({3},{4},{5})",
-      bmin[0],
-      bmin[1],
-      bmin[2],
-      bmax[0],
-      bmax[1],
-      bmax[2]);
-#endif
+  if (config->pipeline_logs)
+  {
+    Godot::print(
+        "RecastPolygonMesh::build_from_raw_triangles(): bmin: ({0},{1},{2}), bmax: ({3},{4},{5})",
+        bmin[0],
+        bmin[1],
+        bmin[2],
+        bmax[0],
+        bmax[1],
+        bmax[2]);
+  }
 
   rcCalcGridSize(bmin, bmax, config->cell_size, &grid_width, &grid_height);
 
-#ifdef PIPELINE_DEBUG
-  Godot::print(
-      "RecastPolygonMesh::build_from_raw_triangles(): grid w: {0}, h: {1}",
-      grid_width,
-      grid_height);
-#endif
+  if (config->pipeline_logs)
+  {
+    Godot::print(
+        "RecastPolygonMesh::build_from_raw_triangles(): grid w: {0}, h: {1}",
+        grid_width,
+        grid_height);
+  }
 
   if (not rcCreateHeightfield(
           &recast_context,
@@ -177,11 +180,12 @@ bool RecastPolygonMesh::build_from_raw_triangles(
     return false;
   }
 
-#ifdef PIPELINE_DEBUG
-  Godot::print(
-      "RecastPolygonMesh::build_from_raw_triangles(): compact height field's spanCount: {0}",
-      compact_height_field->ref().spanCount);
-#endif
+  if (config->pipeline_logs)
+  {
+    Godot::print(
+        "RecastPolygonMesh::build_from_raw_triangles(): compact height field's spanCount: {0}",
+        compact_height_field->ref().spanCount);
+  }
 
   if (not rcErodeWalkableArea(
           &recast_context, config->walkable_radius, compact_height_field->ref()))
@@ -240,11 +244,12 @@ bool RecastPolygonMesh::build_from_raw_triangles(
       return false;
   }
 
-#ifdef PIPELINE_DEBUG
-  Godot::print(
-      "RecastPolygonMesh::build_from_raw_triangles(): compact height field's spanCount: {0}",
-      compact_height_field->ref().spanCount);
-#endif
+  if (config->pipeline_logs)
+  {
+    Godot::print(
+        "RecastPolygonMesh::build_from_raw_triangles(): compact height field's spanCount: {0}",
+        compact_height_field->ref().spanCount);
+  }
 
   if (not rcBuildContours(
           &recast_context,
@@ -257,11 +262,12 @@ bool RecastPolygonMesh::build_from_raw_triangles(
     return false;
   }
 
-#ifdef PIPELINE_DEBUG
-  Godot::print(
-      "RecastPolygonMesh::build_from_raw_triangles(): contour set's nconts: {0}",
-      contour_set->ptr()->nconts);
-#endif
+  if (config->pipeline_logs)
+  {
+    Godot::print(
+        "RecastPolygonMesh::build_from_raw_triangles(): contour set's nconts: {0}",
+        contour_set->ptr()->nconts);
+  }
 
   if (not rcBuildPolyMesh(
           &recast_context, contour_set->ref(), config->max_verts_per_poly, poly_mesh->ref()))
@@ -270,12 +276,13 @@ bool RecastPolygonMesh::build_from_raw_triangles(
     return false;
   }
 
-#ifdef PIPELINE_DEBUG
-  Godot::print(
-      "RecastPolygonMesh::build_from_raw_triangles(): poly mesh'es nverts: {0}, npolys: {1}",
-      poly_mesh->ptr()->nverts,
-      poly_mesh->ptr()->npolys);
-#endif
+  if (config->pipeline_logs)
+  {
+    Godot::print(
+        "RecastPolygonMesh::build_from_raw_triangles(): poly mesh'es nverts: {0}, npolys: {1}",
+        poly_mesh->ptr()->nverts,
+        poly_mesh->ptr()->npolys);
+  }
 
   if (not rcBuildPolyMeshDetail(
           &recast_context,
@@ -289,12 +296,14 @@ bool RecastPolygonMesh::build_from_raw_triangles(
     return false;
   }
 
-#ifdef PIPELINE_DEBUG
-  Godot::print(
-      "RecastPolygonMesh::build_from_raw_triangles(): poly mesh detail's nverts: {0}, nmeshes: {1}",
-      poly_mesh_detail->ptr()->nverts,
-      poly_mesh_detail->ptr()->nmeshes);
-#endif
+  if (config->pipeline_logs)
+  {
+    Godot::print(
+        "RecastPolygonMesh::build_from_raw_triangles(): poly mesh detail's nverts: {0}, nmeshes: "
+        "{1}",
+        poly_mesh_detail->ptr()->nverts,
+        poly_mesh_detail->ptr()->nmeshes);
+  }
 
   simple_recast_mesh = std::move(poly_mesh);
   detailed_recast_mesh = std::move(poly_mesh_detail);

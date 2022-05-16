@@ -51,6 +51,10 @@ void AdvancedNavigationMesh3D::bake()
       navigation_mesh = a_navigation_mesh;
       update_debug_mesh_instance(get_debug_mesh());
     }
+    else
+    {
+      clear();
+    }
   }
 }
 
