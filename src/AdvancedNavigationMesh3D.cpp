@@ -40,11 +40,12 @@ void AdvancedNavigationMesh3D::bake()
       return;
     }
     auto nodes_to_parse = get_children();
-    auto polygon_mesh = server->build_polygon_mesh(nodes_to_parse, config);
-    if (polygon_mesh.is_null())
+    auto a_polygon_mesh = server->build_polygon_mesh(nodes_to_parse, config);
+    if (a_polygon_mesh.is_null())
     {
       return;
     }
+    polygon_mesh = a_polygon_mesh;
     auto a_navigation_mesh = server->build_navigation_mesh(polygon_mesh);
     if (a_navigation_mesh.is_valid())
     {
@@ -83,11 +84,33 @@ void AdvancedNavigationMesh3D::update_debug_mesh_instance(Ref<Mesh> mesh)
 
 Ref<Mesh> AdvancedNavigationMesh3D::get_debug_mesh()
 {
-  if (navigation_mesh.is_null())
+  switch (debug_mesh_type)
   {
-    return nullptr;
+    case DEBUG_MESH_TYPE_RECAST_POLY:
+    case DEBUG_MESH_TYPE_RECAST_POLY_DETAIL:
+    {
+      if (polygon_mesh.is_valid())
+      {
+        return debug_mesh_type == DEBUG_MESH_TYPE_RECAST_POLY
+            ? polygon_mesh->get_poly_mesh()
+            : polygon_mesh->get_poly_mesh_detail();
+      }
+      else if (navigation_mesh.is_valid())
+      {
+        WARN_PRINT("Cannot load debug mesh of given type - please rebake navigation");
+      }
+      return nullptr;
+    }
+    case DEBUG_MESH_TYPE_DETOUR_NAVMESH:
+    {
+      if (navigation_mesh.is_valid())
+      {
+        return navigation_mesh->get_detailed_mesh();
+      }
+      return nullptr;
+    }
   }
-  return navigation_mesh->get_detailed_mesh();
+  return nullptr;
 }
 
 Ref<Material> AdvancedNavigationMesh3D::create_debug_mesh_instance_material()
