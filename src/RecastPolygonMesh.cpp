@@ -321,15 +321,9 @@ Ref<Mesh> RecastPolygonMesh::get_poly_mesh() const
   PoolVector3Array vertices;
   PoolIntArray indices;
 
+  // TODO: refactor
+  // impl taken from RecastDebugDraw.cpp duDebugDrawPolyMesh()
   const int nvp = poly_mesh.nvp;
-  if (nvp != 3)
-  {
-    ERR_PRINT("nvp != 3, implement properly to make it working");
-    return nullptr;
-  }
-
-  // TODO: make mesh out of n-vert polygons
-
   const float cs = poly_mesh.cs;
   const float ch = poly_mesh.ch;
   const float* orig = poly_mesh.bmin;
@@ -337,30 +331,23 @@ Ref<Mesh> RecastPolygonMesh::get_poly_mesh() const
   {
     const unsigned short* p = &poly_mesh.polys[polygon_index * poly_mesh.nvp * 2];
 
-    // Iterate the vertices.
-    for (int j = 0; j < nvp; ++j)
+    unsigned short vi[3];
+    for (int j = 2; j < nvp; ++j)
     {
       if (p[j] == RC_MESH_NULL_IDX)
-        break; // End of vertices.
-
-      if (p[j + poly_mesh.nvp] == RC_MESH_NULL_IDX)
+        break;
+      vi[0] = p[0];
+      vi[1] = p[j - 1];
+      vi[2] = p[j];
+      for (int k = 0; k < 3; ++k)
       {
-        // The edge beginning with this vertex is a solid border.
+        const unsigned short* v = &poly_mesh.verts[vi[k] * 3];
+        const float x = orig[0] + v[0] * cs;
+        const float y = orig[1] + (v[1] + 1) * ch;
+        const float z = orig[2] + v[2] * cs;
+        vertices.append(Vector3(x, y, z));
+        indices.append(vertices.size() - 1);
       }
-      else
-      {
-        // The edge beginning with this vertex connects to
-        // polygon p[j + nvp].
-      }
-
-      // Convert to world space.
-      const unsigned short* v = &poly_mesh.verts[p[j] * 3];
-      const float x = orig[0] + v[0] * cs;
-      const float y = orig[1] + v[1] * ch;
-      const float z = orig[2] + v[2] * cs;
-      vertices.append(Vector3(x, y, z));
-      indices.append(vertices.size() - 1);
-      // Do something with the vertices.
     }
   }
   for (int triangle_index = 0; triangle_index < indices.size() / 3; triangle_index++)
