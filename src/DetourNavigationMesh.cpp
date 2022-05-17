@@ -82,36 +82,6 @@ Ref<Mesh> DetourNavigationMesh::get_detailed_mesh()
   {
     return nullptr;
   }
-  if (tile->header->detailVertCount != 0 or
-      tile->header->polyCount != tile->header->detailMeshCount)
-  {
-    ERR_PRINT("tile->header->detailVertCount != 0 or tile->header->polyCount != "
-              "tile->header->detailMeshCount, not implemented!");
-    Godot::print(
-        "tile, polyCount: {0} vertCount: {1} detailMeshCount: "
-        "{2} detailVertCount: {3} detailTriCount: {4} x: {5} y: {6} l: {7} bmin: {8}, bmax: {9}",
-        tile->header->polyCount,
-        tile->header->vertCount,
-        tile->header->detailMeshCount,
-        tile->header->detailVertCount,
-        tile->header->detailTriCount,
-        tile->header->x,
-        tile->header->y,
-        tile->header->layer,
-        Vector3(tile->header->bmin[0], tile->header->bmin[1], tile->header->bmin[2]),
-        Vector3(tile->header->bmax[0], tile->header->bmax[1], tile->header->bmax[2]));
-    for (int i = 0; i < tile->header->detailMeshCount; i++)
-    {
-      dtPolyDetail& sm = tile->detailMeshes[i];
-      Godot::print(
-          "submesh, vertBase: {0}, triBase: {1}, vertCount: {2}, triCount: {3}",
-          sm.vertBase,
-          sm.triBase,
-          sm.vertCount,
-          sm.triCount);
-    }
-    // return nullptr;
-  }
 
   PoolVector3Array vertices;
   vertices.resize(tile->header->vertCount + tile->header->detailVertCount);
@@ -131,61 +101,30 @@ Ref<Mesh> DetourNavigationMesh::get_detailed_mesh()
     vertices_writer[tile->header->vertCount + vertex_index].z = raw_vertex[2];
   }
 
-  // PoolIntArray indices;
-  // indices.resize(tile->header->detailTriCount * 3);
-  // PoolIntArray::Write indices_writer = indices.write();
-  // unsigned next_index_index = 0;
-  // const unsigned index_offsets[] = {0, 2, 1};
-  // for (int submesh_index = 0; submesh_index < tile->header->detailMeshCount; submesh_index++)
-  // {
-  //   dtPoly& poly = tile->polys[submesh_index];
-  //   dtPolyDetail& submesh = tile->detailMeshes[submesh_index];
-  //   for (unsigned int triangle_index = 0; triangle_index < submesh.triCount; triangle_index++)
-  //   {
-  //     for (unsigned index_offset_index = 0; index_offset_index < 3; index_offset_index++)
-  //     {
-  //       auto vertex_index =
-  //           tile->detailTris
-  //               [submesh.triBase * 4 + triangle_index * 4 + index_offsets[index_offset_index]];
-  //       if (vertex_index < poly.vertCount)
-  //       {
-  //         // this is ok
-  //         indices_writer[next_index_index++] = poly.verts[vertex_index];
-  //       }
-  //       else
-  //       {
-  //         // this not sure
-  //         indices_writer[next_index_index++] =
-  //             tile->header->vertCount + (submesh.vertBase + (vertex_index - poly.vertCount));
-  //       }
-  //     }
-  //   }
-  // }
-
-  // (2)
-
   PoolIntArray indices;
-  for (int poly_index = 0; poly_index < tile->header->polyCount; poly_index++)
+  indices.resize(tile->header->detailTriCount * 3);
+  PoolIntArray::Write indices_writer = indices.write();
+  unsigned next_index_index = 0;
+  const unsigned index_offsets[] = {0, 2, 1};
+  for (int submesh_index = 0; submesh_index < tile->header->detailMeshCount; submesh_index++)
   {
-    dtPoly& poly = tile->polys[poly_index];
-    if (poly.getType() == DT_POLYTYPE_OFFMESH_CONNECTION)
+    dtPoly& poly = tile->polys[submesh_index];
+    dtPolyDetail& submesh = tile->detailMeshes[submesh_index];
+    for (unsigned int triangle_index = 0; triangle_index < submesh.triCount; triangle_index++)
     {
-      continue;
-    }
-    const unsigned int ip = (unsigned int)(&poly - tile->polys);
-    dtPolyDetail& poly_detail = tile->detailMeshes[ip];
-    for (int local_triangle_ix = 0; local_triangle_ix < poly_detail.triCount; local_triangle_ix++)
-    {
-      const unsigned char* t = &tile->detailTris[(poly_detail.triBase + local_triangle_ix) * 4];
-      for (const int& j : std::vector<int>({0, 2, 1}))
+      for (unsigned index_offset_index = 0; index_offset_index < 3; index_offset_index++)
       {
-        if (t[j] < poly.vertCount)
+        auto vertex_index =
+            tile->detailTris
+                [submesh.triBase * 4 + triangle_index * 4 + index_offsets[index_offset_index]];
+        if (vertex_index < poly.vertCount)
         {
-          indices.append(poly.verts[t[j]]);
+          indices_writer[next_index_index++] = poly.verts[vertex_index];
         }
         else
         {
-          indices.append(tile->header->vertCount + (poly_detail.vertBase + t[j] - poly.vertCount));
+          indices_writer[next_index_index++] =
+              tile->header->vertCount + (submesh.vertBase + (vertex_index - poly.vertCount));
         }
       }
     }
