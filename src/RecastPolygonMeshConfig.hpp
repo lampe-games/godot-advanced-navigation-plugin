@@ -18,26 +18,38 @@ class RecastPolygonMeshConfig : public godot::Resource
 
   void _init();
 
-  // rcConfig
+  // ========= rcConfig ==========
+
+  // rasterization:
   static constexpr float default_cell_size{0.3};
   static constexpr float default_cell_height{0.2};
-  static constexpr float default_walkable_slope_angle{70};
-  static constexpr int default_walkable_height{5};
-  static constexpr int default_walkable_climb{1};
+  // agent:
+  static constexpr float default_walkable_slope_angle{45};
+  static constexpr int default_walkable_height{10};
+  static constexpr int default_walkable_climb{4};
   static constexpr int default_walkable_radius{2};
+  // polygonization:
   static constexpr int default_max_edge_len{40};
   static constexpr float default_max_simplification_error{1.3};
+  static constexpr int default_max_verts_per_poly{6};
+  // region:
   static constexpr int default_min_region_area{64};
   static constexpr int default_merge_region_area{20 * 20};
-  static constexpr int default_max_verts_per_poly{6};
+  // detail mesh:
   static constexpr float default_detail_sample_dist{1.8};
   static constexpr float default_detail_sample_max_error{1.0};
+  // AABB:
   static constexpr bool default_custom_aabb_enabled{false};
-  // other
+
+  // ========= other =========
+
+  // partitioning:
   static constexpr int default_partitioning_algorithm{PARTITIONING_ALGORITHM_WATERSHED};
+  // filtering:
   static constexpr bool default_filter_low_hanging_walkable_obstacles{true};
   static constexpr bool default_filter_ledge_spans{true};
   static constexpr bool default_filter_walkable_low_height_spans{true};
+  // debug:
   static constexpr bool default_pipeline_logs{false};
   static constexpr bool default_performance_logs{false};
 
