@@ -56,7 +56,7 @@ class AdvancedNavigationMesh3D : public Spatial
   static constexpr bool default_filter_ledge_spans{true};
   static constexpr bool default_filter_walkable_low_height_spans{true};
   // debug:
-  static constexpr bool default_pipeline_logs{false};
+  static constexpr bool default_logs{false};
   static constexpr bool default_performance_logs{false};
   static constexpr int default_debug_mesh_type{DEBUG_MESH_TYPE_DETOUR_NAVMESH};
 
@@ -201,7 +201,7 @@ class AdvancedNavigationMesh3D : public Spatial
         default_filter_walkable_low_height_spans);
 
     godot::register_property<AdvancedNavigationMesh3D, bool>(
-        "debug/pipeline_logs", &AdvancedNavigationMesh3D::pipeline_logs, default_pipeline_logs);
+        "debug/logs", &AdvancedNavigationMesh3D::logs, default_logs);
     godot::register_property<AdvancedNavigationMesh3D, bool>(
         "debug/performance_logs",
         &AdvancedNavigationMesh3D::performance_logs,
@@ -253,7 +253,7 @@ class AdvancedNavigationMesh3D : public Spatial
   bool filter_low_hanging_walkable_obstacles{default_filter_low_hanging_walkable_obstacles};
   bool filter_ledge_spans{default_filter_ledge_spans};
   bool filter_walkable_low_height_spans{default_filter_walkable_low_height_spans};
-  bool pipeline_logs{default_pipeline_logs};
+  bool logs{default_logs};
   bool performance_logs{default_performance_logs};
   int debug_mesh_type{default_debug_mesh_type};
 

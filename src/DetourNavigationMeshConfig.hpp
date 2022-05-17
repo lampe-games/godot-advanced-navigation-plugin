@@ -16,6 +16,7 @@ class DetourNavigationMeshConfig : public godot::Resource
   static constexpr float default_walkable_climb{0.8};
   static constexpr float default_walkable_radius{0.6};
   static constexpr bool default_build_bv_tree{false};
+  static constexpr bool default_logs{false};
 
   static void _register_methods()
   {
@@ -34,6 +35,8 @@ class DetourNavigationMeshConfig : public godot::Resource
         "agent/max_climb", &DetourNavigationMeshConfig::walkable_climb, default_walkable_climb);
     godot::register_property<DetourNavigationMeshConfig, bool>(
         "bv_tree/enabled", &DetourNavigationMeshConfig::build_bv_tree, default_build_bv_tree);
+    godot::register_property<DetourNavigationMeshConfig, bool>(
+        "debug/logs", &DetourNavigationMeshConfig::logs, default_logs);
   }
 
  public:
@@ -43,4 +46,5 @@ class DetourNavigationMeshConfig : public godot::Resource
   float walkable_climb{default_walkable_climb};
   float walkable_radius{default_walkable_radius};
   bool build_bv_tree{default_build_bv_tree};
+  bool logs{default_logs};
 };

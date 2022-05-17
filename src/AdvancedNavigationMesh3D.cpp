@@ -18,8 +18,6 @@ void AdvancedNavigationMesh3D::_init()
 
 void AdvancedNavigationMesh3D::_ready()
 {
-  Godot::print(
-      "AdvancedNavigationMesh3D::_ready(): already baked: {0}", navigation_mesh.is_valid());
   if (get_tree()->is_debugging_navigation_hint() or Engine::get_singleton()->is_editor_hint())
   {
     create_debug_mesh_instance();
@@ -35,17 +33,20 @@ void AdvancedNavigationMesh3D::bake()
         get_tree()->get_root()->get_node<AdvancedNavigationServer3D>("AdvancedNavigationServer3D");
     if (server == nullptr)
     {
+      ERR_PRINT("Failed finding 'AdvancedNavigationServer3D' autoload");
       return;
     }
     auto nodes_to_parse = get_children();
     auto recast_polygon_mesh_config = create_recast_polygon_mesh_config();
     if (recast_polygon_mesh_config.is_null())
     {
+      ERR_PRINT("Failed creating 'RecastPolygonMeshConfig'");
       return;
     }
     auto a_polygon_mesh = server->build_polygon_mesh(nodes_to_parse, recast_polygon_mesh_config);
     if (a_polygon_mesh.is_null())
     {
+      ERR_PRINT("Failed building 'RecastPolygonMesh'");
       return;
     }
     polygon_mesh = a_polygon_mesh;
@@ -53,6 +54,7 @@ void AdvancedNavigationMesh3D::bake()
         create_detour_navigation_mesh_config(recast_polygon_mesh_config);
     if (detour_navigation_mesh_config.is_null())
     {
+      ERR_PRINT("Failed creating 'DetourNavigationMeshConfig'");
       return;
     }
     auto a_navigation_mesh =
@@ -64,6 +66,7 @@ void AdvancedNavigationMesh3D::bake()
     }
     else
     {
+      ERR_PRINT("Failed creating 'DetourNavigationMesh'");
       clear();
     }
   }
@@ -157,7 +160,7 @@ Ref<RecastPolygonMeshConfig> AdvancedNavigationMesh3D::create_recast_polygon_mes
   config->filter_low_hanging_walkable_obstacles = filter_low_hanging_walkable_obstacles;
   config->filter_ledge_spans = filter_ledge_spans;
   config->filter_walkable_low_height_spans = filter_walkable_low_height_spans;
-  config->pipeline_logs = pipeline_logs;
+  config->pipeline_logs = logs;
   config->performance_logs = performance_logs;
 
   // warnings issued in case of conversions:
@@ -228,6 +231,7 @@ Ref<DetourNavigationMeshConfig> AdvancedNavigationMesh3D::create_detour_navigati
   config->walkable_radius =
       static_cast<float>(recast_polygon_mesh_config->walkable_radius) * config->cell_size;
   config->build_bv_tree = false;
+  config->logs = logs;
 
   return config;
 }

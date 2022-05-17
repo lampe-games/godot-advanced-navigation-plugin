@@ -52,6 +52,19 @@ bool DetourNavigationMesh::build_from_polygon_mesh(
   params.ch = config->cell_height;
   params.buildBvTree = config->build_bv_tree;
 
+  if (config->logs)
+  {
+    Godot::print(
+        "dtNavMeshCreateParams: (...)\n| walkableHeight: {0}\n|walkableRadius: "
+        "{1}\n|walkableClimb: {2}\n|cs: {3}\n| ch: {4}\n| buildBvTree: {5}",
+        params.walkableHeight,
+        params.walkableRadius,
+        params.walkableClimb,
+        params.cs,
+        params.ch,
+        params.buildBvTree);
+  }
+
   unsigned char* data{nullptr};
   int data_size{0};
   if (not dtCreateNavMeshData(&params, &data, &data_size))
@@ -66,7 +79,27 @@ bool DetourNavigationMesh::build_from_polygon_mesh(
     ERR_PRINT("dtNavMesh.init() failed");
     return false;
   }
+
   detour_nav_mesh = std::move(a_detour_nav_mesh);
+
+  const dtMeshTile* tile = detour_nav_mesh->ref().getTile(0);
+  if (config->logs and tile != nullptr)
+  {
+    Godot::print(
+        "dtMeshTile:\n| polyCount: {0}\n| vertCount: {1}\n| detailMeshCount: {2}\n| "
+        "detailVertCount: {3}\n| detailTriCount: {4}\n| x: {5}\n| y: {6}\n| l: {7}\n| bmin: "
+        "{8}\n\\ bmax: {9}",
+        tile->header->polyCount,
+        tile->header->vertCount,
+        tile->header->detailMeshCount,
+        tile->header->detailVertCount,
+        tile->header->detailTriCount,
+        tile->header->x,
+        tile->header->y,
+        tile->header->layer,
+        Vector3(tile->header->bmin[0], tile->header->bmin[1], tile->header->bmin[2]),
+        Vector3(tile->header->bmax[0], tile->header->bmax[1], tile->header->bmax[2]));
+  }
 
   return true;
 }

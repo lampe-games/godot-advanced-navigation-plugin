@@ -21,7 +21,7 @@ class AdvancedNavigationServer3D : public Node
       Ref<RecastPolygonMeshConfig>);
   Ref<DetourNavigationMesh> build_navigation_mesh(
       Ref<RecastPolygonMesh>,
-      Ref<DetourNavigationMesh>);
+      Ref<DetourNavigationMeshConfig>);
 
   Array get_triangles_from_geometry(Array& nodes_to_parse_geometry_from);
 
