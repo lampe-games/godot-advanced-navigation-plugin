@@ -33,6 +33,7 @@ class RecastPolygonMesh : public godot::Resource
 
   bool is_baked() { return simple_recast_mesh and detailed_recast_mesh; }
 
+  godot::Ref<godot::Mesh> get_height_field_mesh() const;
   godot::Ref<godot::Mesh> get_poly_mesh() const;
   godot::Ref<godot::Mesh> get_poly_mesh_detail() const;
 

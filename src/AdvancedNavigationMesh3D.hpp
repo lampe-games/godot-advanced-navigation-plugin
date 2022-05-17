@@ -19,7 +19,8 @@ class AdvancedNavigationMesh3D : public Spatial
  public:
   enum DebugMeshType
   {
-    DEBUG_MESH_TYPE_RECAST_POLY = 0,
+    DEBUG_MESH_TYPE_RECAST_HEIGHTFIELD = 0,
+    DEBUG_MESH_TYPE_RECAST_POLY,
     DEBUG_MESH_TYPE_RECAST_POLY_DETAIL,
     DEBUG_MESH_TYPE_DETOUR_NAVMESH,
   };
@@ -213,7 +214,7 @@ class AdvancedNavigationMesh3D : public Spatial
         GODOT_METHOD_RPC_MODE_DISABLED,
         GODOT_PROPERTY_USAGE_DEFAULT,
         GODOT_PROPERTY_HINT_ENUM,
-        "Recast Poly,Recast Poly Detail,Detour Navmesh");
+        "Recast Heightfield,Recast Poly,Recast Poly Detail,Detour Navmesh");
 
     // storage
 

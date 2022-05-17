@@ -311,6 +311,11 @@ bool RecastPolygonMesh::build_from_raw_triangles(
   return true;
 }
 
+Ref<Mesh> RecastPolygonMesh::get_height_field_mesh() const
+{
+  return nullptr;
+}
+
 Ref<Mesh> RecastPolygonMesh::get_poly_mesh() const
 {
   if (simple_recast_mesh == nullptr or simple_recast_mesh->ref().nverts <= 0)

@@ -99,14 +99,21 @@ Ref<Mesh> AdvancedNavigationMesh3D::get_debug_mesh()
 {
   switch (debug_mesh_type)
   {
+    case DEBUG_MESH_TYPE_RECAST_HEIGHTFIELD:
     case DEBUG_MESH_TYPE_RECAST_POLY:
     case DEBUG_MESH_TYPE_RECAST_POLY_DETAIL:
     {
       if (polygon_mesh.is_valid())
       {
-        return debug_mesh_type == DEBUG_MESH_TYPE_RECAST_POLY
-            ? polygon_mesh->get_poly_mesh()
-            : polygon_mesh->get_poly_mesh_detail();
+        switch (debug_mesh_type)
+        {
+          case DEBUG_MESH_TYPE_RECAST_HEIGHTFIELD:
+            return polygon_mesh->get_height_field_mesh();
+          case DEBUG_MESH_TYPE_RECAST_POLY:
+            return polygon_mesh->get_poly_mesh();
+          case DEBUG_MESH_TYPE_RECAST_POLY_DETAIL:
+            return polygon_mesh->get_poly_mesh_detail();
+        }
       }
       else if (navigation_mesh.is_valid())
       {
