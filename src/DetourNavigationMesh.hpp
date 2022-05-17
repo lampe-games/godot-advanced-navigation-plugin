@@ -7,6 +7,7 @@
 #include <Ref.hpp>
 #include <Resource.hpp>
 
+#include "DetourNavigationMeshConfig.hpp"
 #include "DetourWrappers.hpp"
 #include "RecastPolygonMesh.hpp"
 
@@ -17,8 +18,9 @@ class DetourNavigationMesh : public godot::Resource
  public:
   void _init() {}
 
-  // TODO: config
-  bool build_from_polygon_mesh(godot::Ref<RecastPolygonMesh>);
+  bool build_from_polygon_mesh(
+      godot::Ref<RecastPolygonMesh>,
+      godot::Ref<DetourNavigationMeshConfig>);
 
   godot::Ref<godot::Mesh> get_detailed_mesh();
 

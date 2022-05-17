@@ -49,7 +49,14 @@ void AdvancedNavigationMesh3D::bake()
       return;
     }
     polygon_mesh = a_polygon_mesh;
-    auto a_navigation_mesh = server->build_navigation_mesh(polygon_mesh);
+    auto detour_navigation_mesh_config =
+        create_detour_navigation_mesh_config(recast_polygon_mesh_config);
+    if (detour_navigation_mesh_config.is_null())
+    {
+      return;
+    }
+    auto a_navigation_mesh =
+        server->build_navigation_mesh(polygon_mesh, detour_navigation_mesh_config);
     if (a_navigation_mesh.is_valid())
     {
       navigation_mesh = a_navigation_mesh;
@@ -202,6 +209,25 @@ Ref<RecastPolygonMeshConfig> AdvancedNavigationMesh3D::create_recast_polygon_mes
             .format(Array::make(static_cast<float>(config->walkable_height) * cell_height * 3)));
     return nullptr;
   }
+
+  return config;
+}
+
+Ref<DetourNavigationMeshConfig> AdvancedNavigationMesh3D::create_detour_navigation_mesh_config(
+    Ref<RecastPolygonMeshConfig> recast_polygon_mesh_config)
+{
+  Ref<DetourNavigationMeshConfig> config =
+      Ref<DetourNavigationMeshConfig>(DetourNavigationMeshConfig::_new());
+
+  config->cell_size = recast_polygon_mesh_config->cell_size;
+  config->cell_height = recast_polygon_mesh_config->cell_height;
+  config->walkable_height =
+      static_cast<float>(recast_polygon_mesh_config->walkable_height) * config->cell_height;
+  config->walkable_climb =
+      static_cast<float>(recast_polygon_mesh_config->walkable_climb) * config->cell_height;
+  config->walkable_radius =
+      static_cast<float>(recast_polygon_mesh_config->walkable_radius) * config->cell_size;
+  config->build_bv_tree = false;
 
   return config;
 }

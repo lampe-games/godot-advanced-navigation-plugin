@@ -10,18 +10,20 @@
 
 using namespace godot;
 
-bool DetourNavigationMesh::build_from_polygon_mesh(godot::Ref<RecastPolygonMesh> polygon_mesh)
+bool DetourNavigationMesh::build_from_polygon_mesh(
+    Ref<RecastPolygonMesh> polygon_mesh,
+    Ref<DetourNavigationMeshConfig> config)
 {
-  if (not polygon_mesh->is_baked())
+  if (not polygon_mesh->is_baked() or config.is_null())
   {
-    return false;
+    return false; // TODO: print proper error
   }
   const rcPolyMesh& recast_poly_mesh = polygon_mesh->get_recast_poly_mesh();
   const rcPolyMeshDetail& recast_poly_mesh_detail = polygon_mesh->get_recast_poly_mesh_detail();
 
   if (recast_poly_mesh.nverts == 0 or recast_poly_mesh_detail.nverts == 0)
   {
-    ERR_PRINT("recast pipeline built empty mesh");
+    ERR_PRINT("recast pipeline has built an empty mesh");
     return false;
   }
   dtNavMeshCreateParams params{};
@@ -43,13 +45,12 @@ bool DetourNavigationMesh::build_from_polygon_mesh(godot::Ref<RecastPolygonMesh>
   dtVcopy(params.bmin, recast_poly_mesh.bmin);
   dtVcopy(params.bmax, recast_poly_mesh.bmax);
 
-  // TODO: config
-  params.walkableHeight = 0.2 * 5; // [wu]
-  params.walkableRadius = 0.3 * 2; // [wu]
-  params.walkableClimb = 0.2 * 1; // [wu]
-  params.cs = 0.3; // [wu] >0
-  params.ch = 0.2; // [wu] >0
-  params.buildBvTree = false;
+  params.walkableHeight = config->walkable_height;
+  params.walkableRadius = config->walkable_radius;
+  params.walkableClimb = config->walkable_climb;
+  params.cs = config->cell_size;
+  params.ch = config->cell_height;
+  params.buildBvTree = config->build_bv_tree;
 
   unsigned char* data{nullptr};
   int data_size{0};

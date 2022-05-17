@@ -232,6 +232,8 @@ class AdvancedNavigationMesh3D : public Spatial
   Ref<Mesh> get_debug_mesh();
   Ref<Material> create_debug_mesh_instance_material();
   Ref<RecastPolygonMeshConfig> create_recast_polygon_mesh_config();
+  Ref<DetourNavigationMeshConfig> create_detour_navigation_mesh_config(
+      Ref<RecastPolygonMeshConfig>);
 
  private:
   float cell_size{default_cell_size};
