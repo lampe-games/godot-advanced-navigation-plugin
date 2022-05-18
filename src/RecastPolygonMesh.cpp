@@ -305,6 +305,7 @@ bool RecastPolygonMesh::build_from_raw_triangles(
         poly_mesh_detail->ptr()->nmeshes);
   }
 
+  height_field_solid = std::move(height_field);
   simple_recast_mesh = std::move(poly_mesh);
   detailed_recast_mesh = std::move(poly_mesh_detail);
 
@@ -313,7 +314,110 @@ bool RecastPolygonMesh::build_from_raw_triangles(
 
 Ref<Mesh> RecastPolygonMesh::get_height_field_mesh() const
 {
-  return nullptr;
+  if (height_field_solid == nullptr or height_field_solid->ref().width == 0 or
+      height_field_solid->ref().height == 0)
+  {
+    return nullptr;
+  }
+  rcHeightfield& height_field = height_field_solid->ref();
+  PoolVector3Array vertices;
+  PoolIntArray indices;
+
+  // TODO: refactor
+  // impl taken from RecastDebugDraw.cpp duDebugDrawHeightfieldSolid()
+  rcHeightfield& hf = height_field;
+  const float* orig = hf.bmin;
+  const float cs = hf.cs;
+  const float ch = hf.ch;
+
+  const int w = hf.width;
+  const int h = hf.height;
+
+  for (int y = 0; y < h; ++y)
+  {
+    for (int x = 0; x < w; ++x)
+    {
+      float fx = orig[0] + x * cs;
+      float fz = orig[2] + y * cs;
+      const rcSpan* s = hf.spans[x + y * w];
+      while (s)
+      {
+        float minx = fx;
+        float miny = orig[1] + s->smin * ch;
+        float minz = fz;
+        float maxx = fx + cs;
+        float maxy = orig[1] + s->smax * ch;
+        float maxz = fz + cs;
+
+        vertices.append(Vector3(minx, maxy, minz));
+        auto hbl = vertices.size() - 1;
+        vertices.append(Vector3(minx, maxy, maxz));
+        auto htl = vertices.size() - 1;
+        vertices.append(Vector3(maxx, maxy, maxz));
+        auto htr = vertices.size() - 1;
+        vertices.append(Vector3(maxx, maxy, minz));
+        auto hbr = vertices.size() - 1;
+        vertices.append(Vector3(minx, miny, minz));
+        auto lbl = vertices.size() - 1;
+        vertices.append(Vector3(minx, miny, maxz));
+        auto ltl = vertices.size() - 1;
+        vertices.append(Vector3(maxx, miny, maxz));
+        auto ltr = vertices.size() - 1;
+        vertices.append(Vector3(maxx, miny, minz));
+        auto lbr = vertices.size() - 1;
+
+        // top:
+        indices.append(hbl);
+        indices.append(hbr);
+        indices.append(htr);
+        indices.append(htr);
+        indices.append(htl);
+        indices.append(hbl);
+
+        // side: lbl - lbr
+        indices.append(lbl);
+        indices.append(lbr);
+        indices.append(hbr);
+        indices.append(hbr);
+        indices.append(hbl);
+        indices.append(lbl);
+
+        // side: lbr - ltr
+        indices.append(lbr);
+        indices.append(ltr);
+        indices.append(htr);
+        indices.append(htr);
+        indices.append(hbr);
+        indices.append(lbr);
+
+        // side: ltr - ltl
+        indices.append(ltr);
+        indices.append(ltl);
+        indices.append(htl);
+        indices.append(htl);
+        indices.append(htr);
+        indices.append(ltr);
+
+        // side: ltl - lbl
+        indices.append(ltl);
+        indices.append(lbl);
+        indices.append(hbl);
+        indices.append(hbl);
+        indices.append(htl);
+        indices.append(ltl);
+
+        s = s->next;
+      }
+    }
+  }
+
+  Array arrays;
+  arrays.resize(Mesh::ARRAY_MAX);
+  arrays[Mesh::ARRAY_VERTEX] = vertices;
+  arrays[Mesh::ARRAY_INDEX] = indices;
+  Ref<ArrayMesh> resulting_mesh = ArrayMesh::_new();
+  resulting_mesh->add_surface_from_arrays(Mesh::PRIMITIVE_TRIANGLES, arrays);
+  return resulting_mesh;
 }
 
 Ref<Mesh> RecastPolygonMesh::get_poly_mesh() const

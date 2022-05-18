@@ -11,9 +11,198 @@
 
 #include "AdvancedNavigationServer3D.hpp"
 
+void AdvancedNavigationMesh3D::_register_methods()
+{
+  register_method("_ready", &AdvancedNavigationMesh3D::_ready);
+
+  register_method("bake", &AdvancedNavigationMesh3D::bake);
+  register_method("clear", &AdvancedNavigationMesh3D::clear);
+
+  // properties
+
+  register_property<AdvancedNavigationMesh3D, int>(
+      "partitioning/algorithm",
+      &AdvancedNavigationMesh3D::partitioning_algorithm,
+      default_partitioning_algorithm,
+      GODOT_METHOD_RPC_MODE_DISABLED,
+      GODOT_PROPERTY_USAGE_DEFAULT,
+      GODOT_PROPERTY_HINT_ENUM,
+      "Watershed,Monotone,Layers");
+
+  register_property<AdvancedNavigationMesh3D, float>(
+      "cell/size",
+      &AdvancedNavigationMesh3D::cell_size,
+      default_cell_size,
+      GODOT_METHOD_RPC_MODE_DISABLED,
+      GODOT_PROPERTY_USAGE_DEFAULT,
+      GODOT_PROPERTY_HINT_RANGE,
+      "0.05,99999.0");
+  register_property<AdvancedNavigationMesh3D, float>(
+      "cell/height",
+      &AdvancedNavigationMesh3D::cell_height,
+      default_cell_height,
+      GODOT_METHOD_RPC_MODE_DISABLED,
+      GODOT_PROPERTY_USAGE_DEFAULT,
+      GODOT_PROPERTY_HINT_RANGE,
+      "0.05,99999.0");
+
+  register_property<AdvancedNavigationMesh3D, float>(
+      "agent/radius",
+      &AdvancedNavigationMesh3D::walkable_radius,
+      default_walkable_radius,
+      GODOT_METHOD_RPC_MODE_DISABLED,
+      GODOT_PROPERTY_USAGE_DEFAULT,
+      GODOT_PROPERTY_HINT_RANGE,
+      "0.0,99999.0");
+  register_property<AdvancedNavigationMesh3D, float>(
+      "agent/height",
+      &AdvancedNavigationMesh3D::walkable_height,
+      default_walkable_height,
+      GODOT_METHOD_RPC_MODE_DISABLED,
+      GODOT_PROPERTY_USAGE_DEFAULT,
+      GODOT_PROPERTY_HINT_RANGE,
+      "0.15,99999.0");
+  register_property<AdvancedNavigationMesh3D, float>(
+      "agent/max_climb",
+      &AdvancedNavigationMesh3D::walkable_climb,
+      default_walkable_climb,
+      GODOT_METHOD_RPC_MODE_DISABLED,
+      GODOT_PROPERTY_USAGE_DEFAULT,
+      GODOT_PROPERTY_HINT_RANGE,
+      "0.0,99999.0");
+  register_property<AdvancedNavigationMesh3D, float>(
+      "agent/max_slope",
+      &AdvancedNavigationMesh3D::walkable_slope_angle,
+      default_walkable_slope_angle,
+      GODOT_METHOD_RPC_MODE_DISABLED,
+      GODOT_PROPERTY_USAGE_DEFAULT,
+      GODOT_PROPERTY_HINT_RANGE,
+      "0.0,89.9");
+
+  register_property<AdvancedNavigationMesh3D, int>(
+      "region/min_size",
+      &AdvancedNavigationMesh3D::min_region_size,
+      default_min_region_size,
+      GODOT_METHOD_RPC_MODE_DISABLED,
+      GODOT_PROPERTY_USAGE_DEFAULT,
+      GODOT_PROPERTY_HINT_RANGE,
+      "0,99999");
+  register_property<AdvancedNavigationMesh3D, int>(
+      "region/merge_size",
+      &AdvancedNavigationMesh3D::merge_region_size,
+      default_merge_region_size,
+      GODOT_METHOD_RPC_MODE_DISABLED,
+      GODOT_PROPERTY_USAGE_DEFAULT,
+      GODOT_PROPERTY_HINT_RANGE,
+      "0,99999");
+
+  register_property<AdvancedNavigationMesh3D, float>(
+      "polygon/max_edge_length",
+      &AdvancedNavigationMesh3D::max_edge_len,
+      default_max_edge_len,
+      GODOT_METHOD_RPC_MODE_DISABLED,
+      GODOT_PROPERTY_USAGE_DEFAULT,
+      GODOT_PROPERTY_HINT_RANGE,
+      "0.0,99999.0");
+  register_property<AdvancedNavigationMesh3D, float>(
+      "polygon/max_edge_error",
+      &AdvancedNavigationMesh3D::max_simplification_error,
+      default_max_simplification_error,
+      GODOT_METHOD_RPC_MODE_DISABLED,
+      GODOT_PROPERTY_USAGE_DEFAULT,
+      GODOT_PROPERTY_HINT_RANGE,
+      "0.0,99999.0");
+  register_property<AdvancedNavigationMesh3D, int>(
+      "polygon/max_verts_per_poly",
+      &AdvancedNavigationMesh3D::max_verts_per_poly,
+      default_max_verts_per_poly,
+      GODOT_METHOD_RPC_MODE_DISABLED,
+      GODOT_PROPERTY_USAGE_DEFAULT,
+      GODOT_PROPERTY_HINT_RANGE,
+      "3,6");
+
+  register_property<AdvancedNavigationMesh3D, int>(
+      "detail/sample_distance",
+      &AdvancedNavigationMesh3D::detail_sample_dist,
+      default_detail_sample_dist,
+      GODOT_METHOD_RPC_MODE_DISABLED,
+      GODOT_PROPERTY_USAGE_DEFAULT,
+      GODOT_PROPERTY_HINT_RANGE,
+      "0,99999");
+  register_property<AdvancedNavigationMesh3D, int>(
+      "detail/sample_max_error",
+      &AdvancedNavigationMesh3D::detail_sample_max_error,
+      default_detail_sample_max_error,
+      GODOT_METHOD_RPC_MODE_DISABLED,
+      GODOT_PROPERTY_USAGE_DEFAULT,
+      GODOT_PROPERTY_HINT_RANGE,
+      "0,99999");
+
+  register_property<AdvancedNavigationMesh3D, bool>(
+      "filter/low_hanging_walkable_obstacles",
+      &AdvancedNavigationMesh3D::filter_low_hanging_walkable_obstacles,
+      default_filter_low_hanging_walkable_obstacles);
+  register_property<AdvancedNavigationMesh3D, bool>(
+      "filter/ledge_spans",
+      &AdvancedNavigationMesh3D::filter_ledge_spans,
+      default_filter_ledge_spans);
+  register_property<AdvancedNavigationMesh3D, bool>(
+      "filter/walkable_low_height_spans",
+      &AdvancedNavigationMesh3D::filter_walkable_low_height_spans,
+      default_filter_walkable_low_height_spans);
+
+  register_property<AdvancedNavigationMesh3D, bool>(
+      "debug/logs", &AdvancedNavigationMesh3D::logs, default_logs);
+  register_property<AdvancedNavigationMesh3D, bool>(
+      "debug/performance_logs",
+      &AdvancedNavigationMesh3D::performance_logs,
+      default_performance_logs);
+  register_property<AdvancedNavigationMesh3D, int>(
+      "debug/mesh_type",
+      &AdvancedNavigationMesh3D::debug_mesh_type,
+      default_debug_mesh_type,
+      GODOT_METHOD_RPC_MODE_DISABLED,
+      GODOT_PROPERTY_USAGE_DEFAULT,
+      GODOT_PROPERTY_HINT_ENUM,
+      "Recast Heightfield,Recast Poly,Recast Poly Detail,Detour Navmesh");
+  register_property<AdvancedNavigationMesh3D, Ref<Material>>(
+      "debug/transparent_mesh_material",
+      &AdvancedNavigationMesh3D::transparent_debug_mesh_material,
+      Ref<Material>(),
+      GODOT_METHOD_RPC_MODE_DISABLED,
+      GODOT_PROPERTY_USAGE_DEFAULT,
+      GODOT_PROPERTY_HINT_RESOURCE_TYPE,
+      "Material");
+  register_property<AdvancedNavigationMesh3D, Ref<Material>>(
+      "debug/solid_mesh_material",
+      &AdvancedNavigationMesh3D::solid_debug_mesh_material,
+      Ref<Material>(),
+      GODOT_METHOD_RPC_MODE_DISABLED,
+      GODOT_PROPERTY_USAGE_DEFAULT,
+      GODOT_PROPERTY_HINT_RESOURCE_TYPE,
+      "Material");
+
+  // storage
+
+  register_property<AdvancedNavigationMesh3D, Ref<DetourNavigationMesh>>(
+      "navigation_mesh",
+      &AdvancedNavigationMesh3D::navigation_mesh,
+      Ref<DetourNavigationMesh>(),
+      GODOT_METHOD_RPC_MODE_DISABLED,
+      GODOT_PROPERTY_USAGE_STORAGE,
+      GODOT_PROPERTY_HINT_NONE);
+}
+
 void AdvancedNavigationMesh3D::_init()
 {
-  ;
+  if (transparent_debug_mesh_material.is_null())
+  {
+    transparent_debug_mesh_material = create_transparent_debug_mesh_material();
+  }
+  if (solid_debug_mesh_material.is_null())
+  {
+    solid_debug_mesh_material = create_solid_debug_mesh_material();
+  }
 }
 
 void AdvancedNavigationMesh3D::_ready()
@@ -86,13 +275,14 @@ void AdvancedNavigationMesh3D::create_debug_mesh_instance()
   debug_mesh_instance = MeshInstance::_new();
   debug_mesh_instance->set_name("DebugNavigationMeshInstance");
   debug_mesh_instance->set_meta("advanced_navigation:debug_mesh", true);
-  debug_mesh_instance->set_material_override(create_debug_mesh_instance_material());
+  debug_mesh_instance->set_material_override(get_debug_mesh_material());
   add_child(debug_mesh_instance);
 }
 
 void AdvancedNavigationMesh3D::update_debug_mesh_instance(Ref<Mesh> mesh)
 {
   debug_mesh_instance->set_mesh(mesh);
+  debug_mesh_instance->set_material_override(get_debug_mesh_material());
 }
 
 Ref<Mesh> AdvancedNavigationMesh3D::get_debug_mesh()
@@ -133,14 +323,33 @@ Ref<Mesh> AdvancedNavigationMesh3D::get_debug_mesh()
   return nullptr;
 }
 
-Ref<Material> AdvancedNavigationMesh3D::create_debug_mesh_instance_material()
+Ref<Material> AdvancedNavigationMesh3D::get_debug_mesh_material()
+{
+  switch (debug_mesh_type)
+  {
+    case DEBUG_MESH_TYPE_RECAST_HEIGHTFIELD:
+      return solid_debug_mesh_material;
+    case DEBUG_MESH_TYPE_RECAST_POLY:
+    case DEBUG_MESH_TYPE_RECAST_POLY_DETAIL:
+    case DEBUG_MESH_TYPE_DETOUR_NAVMESH:
+      return transparent_debug_mesh_material;
+  }
+  return nullptr;
+}
+
+Ref<Material> AdvancedNavigationMesh3D::create_transparent_debug_mesh_material()
 {
   Ref<SpatialMaterial> material = SpatialMaterial::_new();
   material->set_flag(SpatialMaterial::FLAG_UNSHADED, true);
   material->set_feature(SpatialMaterial::FEATURE_TRANSPARENT, true);
-  material->set_flag(SpatialMaterial::FLAG_SRGB_VERTEX_COLOR, true);
-  material->set_flag(SpatialMaterial::FLAG_ALBEDO_FROM_VERTEX_COLOR, true);
   material->set_albedo(Color(1.0, 0.0, 0.0, 0.4));
+  return material;
+}
+
+Ref<Material> AdvancedNavigationMesh3D::create_solid_debug_mesh_material()
+{
+  Ref<SpatialMaterial> material = SpatialMaterial::_new();
+  material->set_albedo(Color(1.0, 0.0, 0.0, 1.0));
   return material;
 }
 
