@@ -6,15 +6,16 @@
 
 #include "RecastContext.hpp"
 
-// #define PIPELINE_DEBUG
-
 using namespace godot;
 
-bool RecastPolygonMesh::build_from_triangles(
-    PoolVector3Array& vertices,
-    PoolIntArray& indices,
-    Ref<RecastPolygonMeshConfig> config)
+bool RecastPolygonMesh::build_from_input_geometry(
+    godot::Ref<InputGeometry> input_geometry,
+    godot::Ref<RecastPolygonMeshConfig> config)
 {
+  auto triangles = input_geometry->get_ccw_triangles();
+  PoolVector3Array vertices = triangles[Mesh::ARRAY_VERTEX];
+  PoolIntArray indices = triangles[Mesh::ARRAY_INDEX];
+
   // unpack Vector3s into flat floats
   const int vertices_num = vertices.size();
   float raw_vertices[vertices_num * 3] = {0};
@@ -26,17 +27,11 @@ bool RecastPolygonMesh::build_from_triangles(
     raw_vertices[vertex_index * 3 + 2] = vertices_reader[vertex_index].z;
   }
 
-  // reorder ABC triangles into ACB ones for godot-recast compatibility
-  int raw_indices[indices.size()] = {0};
-  const int triangles_num = indices.size() / 3;
+  // access raw indices
   PoolIntArray::Read indices_reader = indices.read();
-  for (int triangle_index = 0; triangle_index < triangles_num; triangle_index++)
-  {
-    raw_indices[triangle_index * 3 + 0] = indices_reader[triangle_index * 3 + 0];
-    raw_indices[triangle_index * 3 + 1] = indices_reader[triangle_index * 3 + 2];
-    raw_indices[triangle_index * 3 + 2] = indices_reader[triangle_index * 3 + 1];
-  }
+  const int* raw_indices = indices_reader.ptr();
 
+  const int triangles_num = indices.size() / 3;
   return build_from_raw_triangles(raw_vertices, vertices_num, raw_indices, triangles_num, config);
 }
 

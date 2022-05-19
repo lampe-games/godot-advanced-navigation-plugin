@@ -6,6 +6,7 @@
 #include <Mesh.hpp>
 #include <Resource.hpp>
 
+#include "InputGeometry.hpp"
 #include "RecastPolygonMeshConfig.hpp"
 #include "RecastWrappers.hpp"
 
@@ -18,16 +19,13 @@ class RecastPolygonMesh : public godot::Resource
  public:
   void _init() {}
 
-  // TODO: build_from_triangles(arrays)
-  // TODO: build_from_reordered_triangles(arrays) or CCW/CW instead of reordered
-  bool build_from_triangles(
-      godot::PoolVector3Array& vertices,
-      godot::PoolIntArray& indices,
-      godot::Ref<RecastPolygonMeshConfig>);
+  bool build_from_input_geometry(godot::Ref<InputGeometry>, godot::Ref<RecastPolygonMeshConfig>);
+  // TODO: build_from_cw_triangles(arrays)
+  // TODO: build_from_ccw_triangles(arrays)
   bool build_from_raw_triangles(
       const float* vertices, // [(x, y, z) * vertices_num]
       const int vertices_num,
-      const int* indices, // [(vertA, vertB, vertC) * triangles_num], must be reordered
+      const int* indices, // [(vertA, vertB, vertC) * triangles_num], must be CCW (Godot uses CW)
       const int triangles_num,
       godot::Ref<RecastPolygonMeshConfig>);
 

@@ -225,14 +225,16 @@ void AdvancedNavigationMesh3D::bake()
       ERR_PRINT("Failed finding 'AdvancedNavigationServer3D' autoload");
       return;
     }
-    auto nodes_to_parse = get_children();
     auto recast_polygon_mesh_config = create_recast_polygon_mesh_config();
     if (recast_polygon_mesh_config.is_null())
     {
       ERR_PRINT("Failed creating 'RecastPolygonMeshConfig'");
       return;
     }
-    auto a_polygon_mesh = server->build_polygon_mesh(nodes_to_parse, recast_polygon_mesh_config);
+    Ref<InputGeometry> input_geometry = Ref<InputGeometry>(InputGeometry::_new());
+    auto nodes_to_parse = get_children(); // TODO: proper discovery
+    input_geometry->add_nodes(nodes_to_parse);
+    auto a_polygon_mesh = server->build_polygon_mesh(input_geometry, recast_polygon_mesh_config);
     if (a_polygon_mesh.is_null())
     {
       ERR_PRINT("Failed building 'RecastPolygonMesh'");
