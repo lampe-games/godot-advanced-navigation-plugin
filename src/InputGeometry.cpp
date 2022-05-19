@@ -6,7 +6,13 @@
 
 using namespace godot;
 
-void InputGeometry::add_nodes(godot::Array& nodes)
+void InputGeometry::_register_methods()
+{
+  register_method("add_nodes", &InputGeometry::add_nodes);
+  register_method("add_resources", &InputGeometry::add_resources);
+}
+
+void InputGeometry::add_nodes(godot::Array nodes)
 {
   for (int node_index = 0; node_index < nodes.size(); node_index++)
   {
@@ -29,7 +35,7 @@ void InputGeometry::add_nodes(godot::Array& nodes)
   }
 }
 
-void InputGeometry::add_resources(godot::Array& resources)
+void InputGeometry::add_resources(godot::Array resources)
 {
   // godot::helpers::append_all(resources_to_parse, resources);
   // TODO: implement

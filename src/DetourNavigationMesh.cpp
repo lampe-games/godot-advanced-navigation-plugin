@@ -10,6 +10,33 @@
 
 using namespace godot;
 
+void DetourNavigationMesh::_register_methods()
+{
+  register_method("build_from_input_geometry", &RecastPolygonMesh::build_from_input_geometry);
+
+  register_property<DetourNavigationMesh, godot::PoolByteArray>(
+      "serialized_detour_navigation_mesh",
+      &DetourNavigationMesh::deserialize_detour_nav_mesh,
+      &DetourNavigationMesh::serialize_detour_nav_mesh,
+      godot::PoolByteArray(),
+      GODOT_METHOD_RPC_MODE_DISABLED,
+      GODOT_PROPERTY_USAGE_STORAGE,
+      GODOT_PROPERTY_HINT_NONE);
+}
+
+bool DetourNavigationMesh::build_from_input_geometry(
+    Ref<InputGeometry> input_geometry,
+    Ref<RecastPolygonMeshConfig> recast_config,
+    Ref<DetourNavigationMeshConfig> detour_config)
+{
+  Ref<RecastPolygonMesh> recast_polygon_mesh = Ref<RecastPolygonMesh>(RecastPolygonMesh::_new());
+  if (not recast_polygon_mesh->build_from_input_geometry(input_geometry, recast_config))
+  {
+    return false;
+  }
+  return build_from_polygon_mesh(recast_polygon_mesh, detour_config);
+}
+
 bool DetourNavigationMesh::build_from_polygon_mesh(
     Ref<RecastPolygonMesh> polygon_mesh,
     Ref<DetourNavigationMeshConfig> config)

@@ -8,14 +8,14 @@ class InputGeometry : public godot::Resource
   GODOT_CLASS(InputGeometry, godot::Resource);
 
  public:
+  static void _register_methods();
+
   void _init() {}
 
-  void add_nodes(godot::Array& nodes);
-  void add_resources(godot::Array& resources);
+  void add_nodes(godot::Array nodes);
+  void add_resources(godot::Array resources);
 
   godot::Array get_ccw_triangles();
-
-  static void _register_methods() {}
 
  private:
   godot::Array nodes_to_parse;
