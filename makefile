@@ -6,6 +6,9 @@ init:
 cloc:
 	cloc .
 
+todo:
+	ack TODO src/
+
 gource:
 	gource . --key -s 1.5 -a 0.1
 
