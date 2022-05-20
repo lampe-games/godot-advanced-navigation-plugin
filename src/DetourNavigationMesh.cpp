@@ -12,7 +12,7 @@ using namespace godot;
 
 void DetourNavigationMesh::_register_methods()
 {
-  register_method("build_from_input_geometry", &RecastPolygonMesh::build_from_input_geometry);
+  register_method("build_from_input_geometry", &DetourNavigationMesh::build_from_input_geometry);
 
   register_property<DetourNavigationMesh, godot::PoolByteArray>(
       "serialized_detour_navigation_mesh",

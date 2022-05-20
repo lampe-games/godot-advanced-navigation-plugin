@@ -37,19 +37,27 @@ void InputGeometry::add_nodes(godot::Array nodes)
 
 void InputGeometry::add_resources(godot::Array resources)
 {
-  // godot::helpers::append_all(resources_to_parse, resources);
-  // TODO: implement
+  for (int resource_index = 0; resource_index < resources.size(); resource_index++)
+  {
+    // TODO: handle static colliders
+    if (Ref<Mesh>(resources[resource_index]).is_valid())
+    {
+      resources_to_parse.append(resources[resource_index]);
+    }
+  }
 }
 
 Array InputGeometry::get_ccw_triangles()
 {
   // TODO: refactor
   // TODO: check how to get triangles from meshes properly
+  // TODO: do not process duplicates
   Array triangles;
   triangles.resize(Mesh::ARRAY_MAX);
   PoolVector3Array triangle_vertices;
   PoolIntArray triangle_indices;
 
+  // extract geometry from nodes
   for (int node_index = 0; node_index < nodes_to_parse.size(); node_index++)
   {
     const auto& item = nodes_to_parse[node_index];
@@ -57,21 +65,21 @@ Array InputGeometry::get_ccw_triangles()
     {
       MeshInstance* mesh_instance = Object::cast_to<MeshInstance>(item);
       Ref<Mesh> mesh = mesh_instance->get_mesh();
-      if (not mesh.is_valid())
+      if (mesh.is_valid())
       {
-        continue;
+        copy_mesh_to_arrays_ccw(
+            **mesh, mesh_instance->get_global_transform(), triangle_vertices, triangle_indices);
       }
-      auto transform = mesh_instance->get_global_transform();
-      auto faces = mesh->get_faces();
-      for (int face_index = 0; face_index < faces.size() / 3; face_index++)
-      {
-        triangle_vertices.append(transform.xform(faces[face_index * 3]));
-        triangle_indices.append(triangle_vertices.size() - 1);
-        triangle_vertices.append(transform.xform(faces[face_index * 3 + 2]));
-        triangle_indices.append(triangle_vertices.size() - 1);
-        triangle_vertices.append(transform.xform(faces[face_index * 3 + 1]));
-        triangle_indices.append(triangle_vertices.size() - 1);
-      }
+    }
+  }
+
+  // extract geometry from resources
+  for (int resource_index = 0; resource_index < resources_to_parse.size(); resource_index++)
+  {
+    Ref<Mesh> mesh = resources_to_parse[resource_index];
+    if (mesh.is_valid())
+    {
+      copy_mesh_to_arrays_ccw(**mesh, Transform(), triangle_vertices, triangle_indices);
     }
   }
 
@@ -79,4 +87,22 @@ Array InputGeometry::get_ccw_triangles()
   triangles[Mesh::ARRAY_INDEX] = triangle_indices;
 
   return triangles;
+}
+
+void InputGeometry::copy_mesh_to_arrays_ccw(
+    const Mesh& mesh,
+    const Transform& global_transform,
+    PoolVector3Array& triangle_vertices,
+    PoolIntArray& triangle_indices)
+{
+  auto faces = mesh.get_faces();
+  for (int face_index = 0; face_index < faces.size() / 3; face_index++)
+  {
+    triangle_vertices.append(global_transform.xform(faces[face_index * 3]));
+    triangle_indices.append(triangle_vertices.size() - 1);
+    triangle_vertices.append(global_transform.xform(faces[face_index * 3 + 2]));
+    triangle_indices.append(triangle_vertices.size() - 1);
+    triangle_vertices.append(global_transform.xform(faces[face_index * 3 + 1]));
+    triangle_indices.append(triangle_vertices.size() - 1);
+  }
 }
