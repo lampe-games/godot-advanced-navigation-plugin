@@ -2,6 +2,7 @@
 #define private public
 #include "DetourNavigationMesh.hpp"
 
+#include <string>
 #include <vector>
 
 #include <ArrayMesh.hpp>
@@ -13,6 +14,7 @@ using namespace godot;
 void DetourNavigationMesh::_register_methods()
 {
   register_method("build_from_input_geometry", &DetourNavigationMesh::build_from_input_geometry);
+  register_method("get_closest_point", &DetourNavigationMesh::get_closest_point);
 
   register_property<DetourNavigationMesh, godot::PoolByteArray>(
       "serialized_detour_navigation_mesh",
@@ -101,15 +103,39 @@ bool DetourNavigationMesh::build_from_polygon_mesh(
   }
 
   std::unique_ptr<Detour::NavMesh> a_detour_nav_mesh = std::make_unique<Detour::NavMesh>();
+  std::unique_ptr<Detour::NavMeshQuery> a_detour_nav_mesh_query =
+      std::make_unique<Detour::NavMeshQuery>();
+  if (a_detour_nav_mesh->ptr() == nullptr or a_detour_nav_mesh_query->ptr() == nullptr)
+  {
+    ERR_PRINT("Cannot allocate basic detour structures");
+    return false;
+  }
+
   if (DT_SUCCESS != a_detour_nav_mesh->ref().init(data, data_size, DT_TILE_FREE_DATA))
   {
     ERR_PRINT("dtNavMesh.init() failed");
     return false;
   }
 
-  detour_nav_mesh = std::move(a_detour_nav_mesh);
+  if (DT_SUCCESS != a_detour_nav_mesh_query->ref().init(a_detour_nav_mesh->ptr(), 65535))
+  {
+    ERR_PRINT("dtNavMeshQuery.init() failed");
+    return false;
+  }
 
-  const dtMeshTile* tile = detour_nav_mesh->ref().getTile(0);
+  // mark all polygons searchable (for queries)
+  const dtMeshTile* tile = a_detour_nav_mesh->ref().getTile(0);
+  if (tile != nullptr)
+  {
+    for (int polygon_index = 0; polygon_index < tile->header->polyCount; polygon_index++)
+    {
+      tile->polys[polygon_index].flags = POLYGON_SEARCHABLE;
+    }
+  }
+
+  detour_nav_mesh = std::move(a_detour_nav_mesh);
+  detour_nav_mesh_query = std::move(a_detour_nav_mesh_query);
+
   if (config->logs and tile != nullptr)
   {
     Godot::print(
@@ -200,6 +226,36 @@ Ref<Mesh> DetourNavigationMesh::get_detailed_mesh()
   return resulting_mesh;
 }
 
+Vector3 DetourNavigationMesh::get_closest_point(Vector3 target_point) const
+{
+  // !TODO: figure out how to provide optional extens (maybe Variant?)
+  if (not detour_nav_mesh_query)
+  {
+    return Vector3::INF;
+  }
+  float search_box_center[] = {target_point.x, target_point.y, target_point.z};
+  // big extents yield large processing time
+  // TODO: benchmark what values would be best
+  float search_box_half_extents[] = {100, 100, 100}; // TODO: const
+  dtQueryFilter filter; // TODO: store in object
+  // filter.setIncludeFlags(POLYGON_SEARCHABLE);
+  dtPolyRef closest_polygon{};
+  float closest_point[3] = {0};
+  auto outcome = detour_nav_mesh_query->ref().findNearestPoly(
+      search_box_center, search_box_half_extents, &filter, &closest_polygon, closest_point);
+  constexpr auto invalid_polygon = 0;
+  if (DT_SUCCESS == outcome and closest_polygon == invalid_polygon)
+  {
+    return Vector3::INF;
+  }
+  else if (DT_SUCCESS == outcome)
+  {
+    return Vector3(closest_point[0], closest_point[1], closest_point[2]);
+  }
+  ERR_PRINT(detour_status_to_string(outcome).c_str()); // TODO: make human-readable
+  return Vector3::INF;
+}
+
 void DetourNavigationMesh::deserialize_detour_nav_mesh(PoolByteArray serialized_detour_nav_mesh)
 {
   // TODO: handle once multiple tiles supported
@@ -223,6 +279,7 @@ void DetourNavigationMesh::deserialize_detour_nav_mesh(PoolByteArray serialized_
     return;
   }
   detour_nav_mesh = std::move(a_detour_nav_mesh);
+  // !TODO: setup query
 }
 
 PoolByteArray DetourNavigationMesh::serialize_detour_nav_mesh() const
@@ -242,4 +299,21 @@ PoolByteArray DetourNavigationMesh::serialize_detour_nav_mesh() const
   PoolByteArray::Write bytes_writer = serialized_detour_nav_mesh.write();
   std::copy(tile->data, tile->data + tile->dataSize, bytes_writer.ptr());
   return serialized_detour_nav_mesh;
+}
+
+std::string DetourNavigationMesh::detour_status_to_string(dtStatus status)
+{
+  std::string outcome{"dtStatus"};
+  outcome = status & DT_FAILURE ? outcome + "/DT_FAILURE" : outcome;
+  outcome = status & DT_SUCCESS ? outcome + "/DT_SUCCESS" : outcome;
+  outcome = status & DT_IN_PROGRESS ? outcome + "/DT_IN_PROGRESS" : outcome;
+  outcome = status & DT_WRONG_MAGIC ? outcome + "/DT_WRONG_MAGIC" : outcome;
+  outcome = status & DT_WRONG_VERSION ? outcome + "/DT_WRONG_VERSION" : outcome;
+  outcome = status & DT_OUT_OF_MEMORY ? outcome + "/DT_OUT_OF_MEMORY" : outcome;
+  outcome = status & DT_INVALID_PARAM ? outcome + "/DT_INVALID_PARAM" : outcome;
+  outcome = status & DT_BUFFER_TOO_SMALL ? outcome + "/DT_BUFFER_TOO_SMALL" : outcome;
+  outcome = status & DT_OUT_OF_NODES ? outcome + "/DT_OUT_OF_NODES" : outcome;
+  outcome = status & DT_PARTIAL_RESULT ? outcome + "/DT_PARTIAL_RESULT" : outcome;
+  outcome = status & DT_ALREADY_OCCUPIED ? outcome + "/DT_ALREADY_OCCUPIED" : outcome;
+  return outcome;
 }

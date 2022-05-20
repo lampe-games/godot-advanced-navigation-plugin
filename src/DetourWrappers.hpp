@@ -1,6 +1,7 @@
 #pragma once
 
 #include <DetourNavMesh.h>
+#include <DetourNavMeshQuery.h>
 
 // TODO: implement move oprators and make this class a template
 namespace Detour
@@ -27,5 +28,29 @@ class NavMesh
 
  private:
   dtNavMesh* raw_ptr{nullptr};
+};
+
+class NavMeshQuery
+{
+ public:
+  NavMeshQuery() { raw_ptr = dtAllocNavMeshQuery(); }
+  ~NavMeshQuery()
+  {
+    if (raw_ptr != nullptr)
+    {
+      dtFreeNavMeshQuery(raw_ptr);
+    }
+  }
+
+ public:
+  NavMeshQuery& operator=(const NavMeshQuery&) = delete;
+  NavMeshQuery(const NavMeshQuery&) = delete;
+
+ public:
+  dtNavMeshQuery* ptr() { return raw_ptr; }
+  dtNavMeshQuery& ref() { return *raw_ptr; }
+
+ private:
+  dtNavMeshQuery* raw_ptr{nullptr};
 };
 } // namespace Detour

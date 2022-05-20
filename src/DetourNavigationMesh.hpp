@@ -18,6 +18,11 @@ class DetourNavigationMesh : public godot::Resource
  public:
   static void _register_methods();
 
+  enum PolygonFlags
+  {
+    POLYGON_SEARCHABLE = 1,
+  };
+
   void _init() {}
 
   bool build_from_input_geometry(
@@ -30,9 +35,15 @@ class DetourNavigationMesh : public godot::Resource
 
   godot::Ref<godot::Mesh> get_detailed_mesh();
 
+  godot::Vector3 get_closest_point(godot::Vector3 to_point) const; // TODO: const
+
   void deserialize_detour_nav_mesh(godot::PoolByteArray);
   godot::PoolByteArray serialize_detour_nav_mesh() const;
 
  private:
+  static std::string detour_status_to_string(dtStatus);
+
+ private:
   std::unique_ptr<Detour::NavMesh> detour_nav_mesh{nullptr};
+  std::unique_ptr<Detour::NavMeshQuery> detour_nav_mesh_query{nullptr};
 };
