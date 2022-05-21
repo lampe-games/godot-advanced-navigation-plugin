@@ -43,10 +43,12 @@ class DetourNavigationMesh : public godot::Resource
   godot::Vector3 get_closest_point_with_extents(
       godot::Vector3 to_point,
       godot::Vector3 search_box_half_extents) const;
-  godot::PoolVector3Array get_simple_path(godot::Vector3 begin, godot::Vector3 end) const;
+  godot::PoolVector3Array get_simple_path(godot::Vector3 begin, godot::Vector3 end, bool simplified)
+      const;
   godot::PoolVector3Array get_simple_path_with_extents(
       godot::Vector3 begin,
       godot::Vector3 end,
+      bool simplified,
       godot::Vector3 search_box_half_extents) const;
 
   void deserialize_detour_nav_mesh(godot::PoolByteArray);

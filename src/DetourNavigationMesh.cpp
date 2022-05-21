@@ -272,17 +272,20 @@ Vector3 DetourNavigationMesh::get_closest_point_with_extents(
   return Vector3::INF;
 }
 
-PoolVector3Array DetourNavigationMesh::get_simple_path(Vector3 begin, Vector3 end) const
+PoolVector3Array DetourNavigationMesh::get_simple_path(Vector3 begin, Vector3 end, bool simplified)
+    const
 {
   return get_simple_path_with_extents(
       begin,
       end,
+      simplified,
       Vector3(DEFAULT_SERACH_BOX_EXTENTS, DEFAULT_SERACH_BOX_EXTENTS, DEFAULT_SERACH_BOX_EXTENTS));
 }
 
 PoolVector3Array DetourNavigationMesh::get_simple_path_with_extents(
     Vector3 begin,
     Vector3 end,
+    bool simplified,
     Vector3 a_search_box_half_extents) const
 {
   PoolVector3Array result;
@@ -333,6 +336,8 @@ PoolVector3Array DetourNavigationMesh::get_simple_path_with_extents(
   }
 
   constexpr int max_points = MAX_POLYGONS_IN_PATH * 2;
+  const int straight_path_options =
+      simplified ? DT_STRAIGHTPATH_AREA_CROSSINGS : DT_STRAIGHTPATH_ALL_CROSSINGS;
   float path[max_points * 3];
   int path_size = 0;
 
@@ -346,9 +351,7 @@ PoolVector3Array DetourNavigationMesh::get_simple_path_with_extents(
       nullptr,
       &path_size,
       max_points,
-      // TODO: determine visually which one is better (maybe add opt also)
-      // DT_STRAIGHTPATH_ALL_CROSSINGS);
-      DT_STRAIGHTPATH_AREA_CROSSINGS);
+      straight_path_options);
   if (find_straight_path_outcome != DT_SUCCESS)
   {
     ERR_PRINT(detour_status_to_string(find_straight_path_outcome).c_str()); // TODO: human-readable

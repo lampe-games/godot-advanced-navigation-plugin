@@ -18,6 +18,8 @@ void AdvancedNavigationMesh3D::_register_methods()
   register_method("bake", &AdvancedNavigationMesh3D::bake);
   register_method("clear", &AdvancedNavigationMesh3D::clear);
 
+  register_method("get_simple_path", &AdvancedNavigationMesh3D::get_simple_path);
+
   // properties
 
   register_property<AdvancedNavigationMesh3D, int>(
@@ -270,6 +272,21 @@ void AdvancedNavigationMesh3D::clear()
     update_debug_mesh_instance(Ref<Mesh>());
     navigation_mesh = Ref<DetourNavigationMesh>();
   }
+}
+
+PoolVector3Array AdvancedNavigationMesh3D::get_simple_path(
+    Vector3 begin,
+    Vector3 end,
+    bool simplified) const
+{
+  PoolVector3Array result;
+  if (navigation_mesh.is_null())
+  {
+    ERR_PRINT("Navigation mesh is not baked yet");
+    return result;
+  }
+  return navigation_mesh->get_simple_path(begin, end, simplified);
+  return result;
 }
 
 void AdvancedNavigationMesh3D::create_debug_mesh_instance()

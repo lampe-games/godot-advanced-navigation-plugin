@@ -33,6 +33,9 @@ class AdvancedNavigationMesh3D : public Spatial
   void bake();
   void clear();
 
+  godot::PoolVector3Array get_simple_path(godot::Vector3 begin, godot::Vector3 end, bool simplified)
+      const;
+
   // rasterization:
   static constexpr float default_cell_size{0.3};
   static constexpr float default_cell_height{0.2};
