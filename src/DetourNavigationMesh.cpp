@@ -15,6 +15,11 @@ void DetourNavigationMesh::_register_methods()
 {
   register_method("build_from_input_geometry", &DetourNavigationMesh::build_from_input_geometry);
   register_method("get_closest_point", &DetourNavigationMesh::get_closest_point);
+  register_method(
+      "get_closest_point_with_extents", &DetourNavigationMesh::get_closest_point_with_extents);
+  register_method("get_simple_path", &DetourNavigationMesh::get_simple_path);
+  register_method(
+      "get_simple_path_with_extents", &DetourNavigationMesh::get_simple_path_with_extents);
 
   register_property<DetourNavigationMesh, godot::PoolByteArray>(
       "serialized_detour_navigation_mesh",
@@ -228,17 +233,25 @@ Ref<Mesh> DetourNavigationMesh::get_detailed_mesh()
 
 Vector3 DetourNavigationMesh::get_closest_point(Vector3 target_point) const
 {
-  // !TODO: figure out how to provide optional extens (maybe Variant?)
+  return get_closest_point_with_extents(
+      target_point,
+      Vector3(DEFAULT_SERACH_BOX_EXTENTS, DEFAULT_SERACH_BOX_EXTENTS, DEFAULT_SERACH_BOX_EXTENTS));
+}
+
+Vector3 DetourNavigationMesh::get_closest_point_with_extents(
+    Vector3 target_point,
+    Vector3 a_search_box_half_extents) const
+{
   if (not detour_nav_mesh_query)
   {
     return Vector3::INF;
   }
   float search_box_center[] = {target_point.x, target_point.y, target_point.z};
-  // big extents yield large processing time
-  // TODO: benchmark what values would be best
-  float search_box_half_extents[] = {100, 100, 100}; // TODO: const
+  // TODO: warn about big extents yielding large processing time
+  float search_box_half_extents[] = {
+      a_search_box_half_extents.x, a_search_box_half_extents.y, a_search_box_half_extents.z};
   dtQueryFilter filter; // TODO: store in object
-  // filter.setIncludeFlags(POLYGON_SEARCHABLE);
+  filter.setIncludeFlags(POLYGON_SEARCHABLE); // not necessary, but let's have it for readability
   dtPolyRef closest_polygon{};
   float closest_point[3] = {0};
   auto outcome = detour_nav_mesh_query->ref().findNearestPoly(
@@ -254,6 +267,94 @@ Vector3 DetourNavigationMesh::get_closest_point(Vector3 target_point) const
   }
   ERR_PRINT(detour_status_to_string(outcome).c_str()); // TODO: make human-readable
   return Vector3::INF;
+}
+
+PoolVector3Array DetourNavigationMesh::get_simple_path(Vector3 begin, Vector3 end) const
+{
+  return get_simple_path_with_extents(
+      begin,
+      end,
+      Vector3(DEFAULT_SERACH_BOX_EXTENTS, DEFAULT_SERACH_BOX_EXTENTS, DEFAULT_SERACH_BOX_EXTENTS));
+}
+
+PoolVector3Array DetourNavigationMesh::get_simple_path_with_extents(
+    Vector3 begin,
+    Vector3 end,
+    Vector3 a_search_box_half_extents) const
+{
+  PoolVector3Array result;
+
+  const float* begin_raw = &begin.coord[0];
+  const float* end_raw = &end.coord[0];
+  const float* search_box_half_extents = &a_search_box_half_extents.coord[0];
+  dtQueryFilter filter; // TODO: store in object
+  filter.setIncludeFlags(POLYGON_SEARCHABLE); // not necessary, but let's have it for readability
+
+  dtPolyRef closest_begin_polygon{};
+  dtPolyRef closest_end_polygon{};
+  float closest_begin_point[3];
+  float closest_end_point[3];
+
+  constexpr auto invalid_polygon = 0;
+
+  auto begin_outcome = detour_nav_mesh_query->ref().findNearestPoly(
+      begin_raw, search_box_half_extents, &filter, &closest_begin_polygon, closest_begin_point);
+  if (DT_SUCCESS != begin_outcome or closest_begin_polygon == invalid_polygon)
+  {
+    return result;
+  }
+
+  auto end_outcome = detour_nav_mesh_query->ref().findNearestPoly(
+      end_raw, search_box_half_extents, &filter, &closest_end_polygon, closest_end_point);
+  if (DT_SUCCESS != end_outcome or closest_end_polygon == invalid_polygon)
+  {
+    return result;
+  }
+
+  dtPolyRef polygon_path[MAX_POLYGONS_IN_PATH];
+  int polygon_path_size = 0;
+  auto find_path_outcome = detour_nav_mesh_query->ref().findPath(
+      closest_begin_polygon,
+      closest_end_polygon,
+      closest_begin_point,
+      closest_end_point,
+      &filter,
+      polygon_path,
+      &polygon_path_size,
+      MAX_POLYGONS_IN_PATH);
+  if (find_path_outcome != DT_SUCCESS)
+  {
+    ERR_PRINT(detour_status_to_string(find_path_outcome).c_str()); // TODO: human-readable
+  }
+
+  constexpr int max_points = MAX_POLYGONS_IN_PATH * 2;
+  float path[max_points * 3];
+  int path_size = 0;
+
+  // TODO: use poolarray writer
+  auto find_straight_path_outcome = detour_nav_mesh_query->ref().findStraightPath(
+      closest_begin_point,
+      closest_end_point,
+      polygon_path,
+      polygon_path_size,
+      path,
+      nullptr,
+      nullptr,
+      &path_size,
+      max_points,
+      // DT_STRAIGHTPATH_ALL_CROSSINGS);
+      DT_STRAIGHTPATH_AREA_CROSSINGS);
+  if (find_straight_path_outcome != DT_SUCCESS)
+  {
+    ERR_PRINT(detour_status_to_string(find_straight_path_outcome).c_str()); // TODO: human-readable
+  }
+
+  for (int x = 0; x < path_size; x++)
+  {
+    result.append(Vector3(path[x * 3], path[x * 3 + 1], path[x * 3 + 2]));
+  }
+
+  return result;
 }
 
 void DetourNavigationMesh::deserialize_detour_nav_mesh(PoolByteArray serialized_detour_nav_mesh)
