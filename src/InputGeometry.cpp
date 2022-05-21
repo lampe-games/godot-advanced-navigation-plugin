@@ -10,6 +10,7 @@ void InputGeometry::_register_methods()
 {
   register_method("add_nodes", &InputGeometry::add_nodes);
   register_method("add_resources", &InputGeometry::add_resources);
+  register_method("add_resources_with_transforms", &InputGeometry::add_resources_with_transforms);
 }
 
 void InputGeometry::add_nodes(godot::Array nodes)
@@ -37,12 +38,33 @@ void InputGeometry::add_nodes(godot::Array nodes)
 
 void InputGeometry::add_resources(godot::Array resources)
 {
+  godot::Array transforms;
+  // TODO: figure out if better way possible:
+  for (int resource_index = 0; resource_index < resources.size(); resource_index++)
+  {
+    transforms.append(Transform());
+  }
+  add_resources_with_transforms(resources, transforms);
+}
+
+void InputGeometry::add_resources_with_transforms(godot::Array resources, godot::Array transforms)
+{
+  if (resources.size() > transforms.size())
+  {
+    ERR_PRINT("Some transforms missing");
+  }
+  if (resources.size() < transforms.size())
+  {
+    ERR_PRINT("Too much transforms provided");
+  }
   for (int resource_index = 0; resource_index < resources.size(); resource_index++)
   {
     // TODO: handle static colliders
-    if (Ref<Mesh>(resources[resource_index]).is_valid())
+    if (Ref<Mesh>(resources[resource_index]).is_valid() and
+        transforms[resource_index].get_type() == Variant::TRANSFORM)
     {
       resources_to_parse.append(resources[resource_index]);
+      resources_to_parse_transforms.append(transforms[resource_index]);
     }
   }
 }
@@ -79,7 +101,11 @@ Array InputGeometry::get_ccw_triangles()
     Ref<Mesh> mesh = resources_to_parse[resource_index];
     if (mesh.is_valid())
     {
-      copy_mesh_to_arrays_ccw(**mesh, Transform(), triangle_vertices, triangle_indices);
+      copy_mesh_to_arrays_ccw(
+          **mesh,
+          static_cast<Transform>(resources_to_parse_transforms[resource_index]),
+          triangle_vertices,
+          triangle_indices);
     }
   }
 

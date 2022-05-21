@@ -15,6 +15,7 @@ class InputGeometry : public godot::Resource
 
   void add_nodes(godot::Array nodes);
   void add_resources(godot::Array resources);
+  void add_resources_with_transforms(godot::Array resources, godot::Array transforms);
 
   godot::Array get_ccw_triangles();
 
@@ -28,4 +29,5 @@ class InputGeometry : public godot::Resource
  private:
   godot::Array nodes_to_parse;
   godot::Array resources_to_parse;
+  godot::Array resources_to_parse_transforms;
 };

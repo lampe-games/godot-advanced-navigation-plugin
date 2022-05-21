@@ -342,6 +342,7 @@ PoolVector3Array DetourNavigationMesh::get_simple_path_with_extents(
       nullptr,
       &path_size,
       max_points,
+      // TODO: determine visually which one is better (maybe add opt also)
       // DT_STRAIGHTPATH_ALL_CROSSINGS);
       DT_STRAIGHTPATH_AREA_CROSSINGS);
   if (find_straight_path_outcome != DT_SUCCESS)
