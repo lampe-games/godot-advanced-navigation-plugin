@@ -27,7 +27,7 @@ class DetourNavigationMesh : public godot::Resource
   static constexpr int MAX_POLYGONS_IN_PATH = 128;
 
  public:
-  void _init() {}
+  void _init();
 
   bool build_from_input_geometry(
       godot::Ref<InputGeometry>,
@@ -58,4 +58,5 @@ class DetourNavigationMesh : public godot::Resource
  private:
   std::unique_ptr<Detour::NavMesh> detour_nav_mesh{nullptr};
   std::unique_ptr<Detour::NavMeshQuery> detour_nav_mesh_query{nullptr};
+  dtQueryFilter filter;
 };

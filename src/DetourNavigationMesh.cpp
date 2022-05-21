@@ -31,6 +31,11 @@ void DetourNavigationMesh::_register_methods()
       GODOT_PROPERTY_HINT_NONE);
 }
 
+void DetourNavigationMesh::_init()
+{
+  filter.setIncludeFlags(POLYGON_SEARCHABLE); // not necessary, but let's have it for readability
+}
+
 bool DetourNavigationMesh::build_from_input_geometry(
     Ref<InputGeometry> input_geometry,
     Ref<RecastPolygonMeshConfig> recast_config,
@@ -128,6 +133,7 @@ bool DetourNavigationMesh::build_from_polygon_mesh(
     return false;
   }
 
+  // TODO: iterate tiles
   // mark all polygons searchable (for queries)
   const dtMeshTile* tile = a_detour_nav_mesh->ref().getTile(0);
   if (tile != nullptr)
@@ -246,14 +252,11 @@ Vector3 DetourNavigationMesh::get_closest_point_with_extents(
   {
     return Vector3::INF;
   }
-  float search_box_center[] = {target_point.x, target_point.y, target_point.z};
+  float* search_box_center = &target_point.coord[0];
   // TODO: warn about big extents yielding large processing time
-  float search_box_half_extents[] = {
-      a_search_box_half_extents.x, a_search_box_half_extents.y, a_search_box_half_extents.z};
-  dtQueryFilter filter; // TODO: store in object
-  filter.setIncludeFlags(POLYGON_SEARCHABLE); // not necessary, but let's have it for readability
-  dtPolyRef closest_polygon{};
-  float closest_point[3] = {0};
+  float* search_box_half_extents = &a_search_box_half_extents.coord[0];
+  dtPolyRef closest_polygon;
+  float closest_point[3];
   auto outcome = detour_nav_mesh_query->ref().findNearestPoly(
       search_box_center, search_box_half_extents, &filter, &closest_polygon, closest_point);
   constexpr auto invalid_polygon = 0;
@@ -283,12 +286,14 @@ PoolVector3Array DetourNavigationMesh::get_simple_path_with_extents(
     Vector3 a_search_box_half_extents) const
 {
   PoolVector3Array result;
+  if (not detour_nav_mesh_query)
+  {
+    return result;
+  }
 
   const float* begin_raw = &begin.coord[0];
   const float* end_raw = &end.coord[0];
   const float* search_box_half_extents = &a_search_box_half_extents.coord[0];
-  dtQueryFilter filter; // TODO: store in object
-  filter.setIncludeFlags(POLYGON_SEARCHABLE); // not necessary, but let's have it for readability
 
   dtPolyRef closest_begin_polygon{};
   dtPolyRef closest_end_polygon{};
@@ -331,7 +336,6 @@ PoolVector3Array DetourNavigationMesh::get_simple_path_with_extents(
   float path[max_points * 3];
   int path_size = 0;
 
-  // TODO: use poolarray writer
   auto find_straight_path_outcome = detour_nav_mesh_query->ref().findStraightPath(
       closest_begin_point,
       closest_end_point,
@@ -350,9 +354,10 @@ PoolVector3Array DetourNavigationMesh::get_simple_path_with_extents(
     ERR_PRINT(detour_status_to_string(find_straight_path_outcome).c_str()); // TODO: human-readable
   }
 
-  for (int x = 0; x < path_size; x++)
+  for (int point_index = 0; point_index < path_size; point_index++)
   {
-    result.append(Vector3(path[x * 3], path[x * 3 + 1], path[x * 3 + 2]));
+    result.append(
+        Vector3(path[point_index * 3], path[point_index * 3 + 1], path[point_index * 3 + 2]));
   }
 
   return result;
@@ -365,6 +370,16 @@ void DetourNavigationMesh::deserialize_detour_nav_mesh(PoolByteArray serialized_
   {
     return;
   }
+
+  std::unique_ptr<Detour::NavMesh> a_detour_nav_mesh = std::make_unique<Detour::NavMesh>();
+  std::unique_ptr<Detour::NavMeshQuery> a_detour_nav_mesh_query =
+      std::make_unique<Detour::NavMeshQuery>();
+  if (a_detour_nav_mesh->ptr() == nullptr or a_detour_nav_mesh_query->ptr() == nullptr)
+  {
+    ERR_PRINT("Cannot allocate basic detour structures while deserializing navmesh");
+    return;
+  }
+
   unsigned char* detour_nav_mesh_data =
       static_cast<unsigned char*>(dtAlloc(serialized_detour_nav_mesh.size(), DT_ALLOC_PERM));
   PoolByteArray::Read bytes_reader = serialized_detour_nav_mesh.read();
@@ -372,7 +387,6 @@ void DetourNavigationMesh::deserialize_detour_nav_mesh(PoolByteArray serialized_
       bytes_reader.ptr(),
       bytes_reader.ptr() + serialized_detour_nav_mesh.size(),
       detour_nav_mesh_data);
-  std::unique_ptr<Detour::NavMesh> a_detour_nav_mesh = std::make_unique<Detour::NavMesh>();
   if (DT_SUCCESS !=
       a_detour_nav_mesh->ref().init(
           detour_nav_mesh_data, serialized_detour_nav_mesh.size(), DT_TILE_FREE_DATA))
@@ -380,8 +394,14 @@ void DetourNavigationMesh::deserialize_detour_nav_mesh(PoolByteArray serialized_
     ERR_PRINT("dtNavMesh.init() failed");
     return;
   }
+  if (DT_SUCCESS != a_detour_nav_mesh_query->ref().init(a_detour_nav_mesh->ptr(), 65535))
+  {
+    ERR_PRINT("dtNavMeshQuery.init() failed");
+    return;
+  }
+
   detour_nav_mesh = std::move(a_detour_nav_mesh);
-  // !TODO: setup query
+  detour_nav_mesh_query = std::move(a_detour_nav_mesh_query);
 }
 
 PoolByteArray DetourNavigationMesh::serialize_detour_nav_mesh() const
