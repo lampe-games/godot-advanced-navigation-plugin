@@ -366,6 +366,142 @@ PoolVector3Array DetourNavigationMesh::get_simple_path_with_extents(
   return result;
 }
 
+PoolVector3Array DetourNavigationMesh::get_detailed_path(Vector3 begin, Vector3 end) const
+{
+  PoolVector3Array result;
+  return result;
+  // RecastDemo/Source/NavMeshTesterTool.cpp:834
+
+  // m_navQuery->findPath(m_startRef, m_endRef, m_spos, m_epos, &m_filter, m_polys, &m_npolys,
+  // MAX_POLYS);
+
+  // m_nsmoothPath = 0;
+
+  // if (m_npolys)
+  // {
+  // 	// Iterate over the path to find smooth path on the detail mesh surface.
+  // 	dtPolyRef polys[MAX_POLYS];
+  // 	memcpy(polys, m_polys, sizeof(dtPolyRef)*m_npolys);
+  // 	int npolys = m_npolys;
+
+  // 	float iterPos[3], targetPos[3];
+  // 	m_navQuery->closestPointOnPoly(m_startRef, m_spos, iterPos, 0);
+  // 	m_navQuery->closestPointOnPoly(polys[npolys-1], m_epos, targetPos, 0);
+
+  // 	static const float STEP_SIZE = 0.5f;
+  // 	static const float SLOP = 0.01f;
+
+  // 	m_nsmoothPath = 0;
+
+  // 	dtVcopy(&m_smoothPath[m_nsmoothPath*3], iterPos);
+  // 	m_nsmoothPath++;
+
+  // 	// Move towards target a small advancement at a time until target reached or
+  // 	// when ran out of memory to store the path.
+  // 	while (npolys && m_nsmoothPath < MAX_SMOOTH)
+  // 	{
+  // 		// Find location to steer towards.
+  // 		float steerPos[3];
+  // 		unsigned char steerPosFlag;
+  // 		dtPolyRef steerPosRef;
+
+  // 		if (!getSteerTarget(m_navQuery, iterPos, targetPos, SLOP,
+  // 							polys, npolys, steerPos, steerPosFlag, steerPosRef))
+  // 			break;
+
+  // 		bool endOfPath = (steerPosFlag & DT_STRAIGHTPATH_END) ? true : false;
+  // 		bool offMeshConnection = (steerPosFlag & DT_STRAIGHTPATH_OFFMESH_CONNECTION) ? true : false;
+
+  // 		// Find movement delta.
+  // 		float delta[3], len;
+  // 		dtVsub(delta, steerPos, iterPos);
+  // 		len = dtMathSqrtf(dtVdot(delta, delta));
+  // 		// If the steer target is end of path or off-mesh link, do not move past the location.
+  // 		if ((endOfPath || offMeshConnection) && len < STEP_SIZE)
+  // 			len = 1;
+  // 		else
+  // 			len = STEP_SIZE / len;
+  // 		float moveTgt[3];
+  // 		dtVmad(moveTgt, iterPos, delta, len);
+
+  // 		// Move
+  // 		float result[3];
+  // 		dtPolyRef visited[16];
+  // 		int nvisited = 0;
+  // 		m_navQuery->moveAlongSurface(polys[0], iterPos, moveTgt, &m_filter,
+  // 									 result, visited, &nvisited, 16);
+
+  // 		npolys = fixupCorridor(polys, npolys, MAX_POLYS, visited, nvisited);
+  // 		npolys = fixupShortcuts(polys, npolys, m_navQuery);
+
+  // 		float h = 0;
+  // 		m_navQuery->getPolyHeight(polys[0], result, &h);
+  // 		result[1] = h;
+  // 		dtVcopy(iterPos, result);
+
+  // 		// Handle end of path and off-mesh links when close enough.
+  // 		if (endOfPath && inRange(iterPos, steerPos, SLOP, 1.0f))
+  // 		{
+  // 			// Reached end of path.
+  // 			dtVcopy(iterPos, targetPos);
+  // 			if (m_nsmoothPath < MAX_SMOOTH)
+  // 			{
+  // 				dtVcopy(&m_smoothPath[m_nsmoothPath*3], iterPos);
+  // 				m_nsmoothPath++;
+  // 			}
+  // 			break;
+  // 		}
+  // 		else if (offMeshConnection && inRange(iterPos, steerPos, SLOP, 1.0f))
+  // 		{
+  // 			// Reached off-mesh connection.
+  // 			float startPos[3], endPos[3];
+
+  // 			// Advance the path up to and over the off-mesh connection.
+  // 			dtPolyRef prevRef = 0, polyRef = polys[0];
+  // 			int npos = 0;
+  // 			while (npos < npolys && polyRef != steerPosRef)
+  // 			{
+  // 				prevRef = polyRef;
+  // 				polyRef = polys[npos];
+  // 				npos++;
+  // 			}
+  // 			for (int i = npos; i < npolys; ++i)
+  // 				polys[i-npos] = polys[i];
+  // 			npolys -= npos;
+
+  // 			// Handle the connection.
+  // 			dtStatus status = m_navMesh->getOffMeshConnectionPolyEndPoints(prevRef, polyRef, startPos,
+  // endPos); 			if (dtStatusSucceed(status))
+  // 			{
+  // 				if (m_nsmoothPath < MAX_SMOOTH)
+  // 				{
+  // 					dtVcopy(&m_smoothPath[m_nsmoothPath*3], startPos);
+  // 					m_nsmoothPath++;
+  // 					// Hack to make the dotted path not visible during off-mesh connection.
+  // 					if (m_nsmoothPath & 1)
+  // 					{
+  // 						dtVcopy(&m_smoothPath[m_nsmoothPath*3], startPos);
+  // 						m_nsmoothPath++;
+  // 					}
+  // 				}
+  // 				// Move position at the other side of the off-mesh link.
+  // 				dtVcopy(iterPos, endPos);
+  // 				float eh = 0.0f;
+  // 				m_navQuery->getPolyHeight(polys[0], iterPos, &eh);
+  // 				iterPos[1] = eh;
+  // 			}
+  // 		}
+
+  // 		// Store results.
+  // 		if (m_nsmoothPath < MAX_SMOOTH)
+  // 		{
+  // 			dtVcopy(&m_smoothPath[m_nsmoothPath*3], iterPos);
+  // 			m_nsmoothPath++;
+  // 		}
+  // 	}
+  // }
+}
+
 void DetourNavigationMesh::deserialize_detour_nav_mesh(PoolByteArray serialized_detour_nav_mesh)
 {
   // TODO: handle once multiple tiles supported
