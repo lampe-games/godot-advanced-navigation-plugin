@@ -1,5 +1,6 @@
 #pragma once
 
+#include <DetourCrowd.h>
 #include <DetourNavMesh.h>
 #include <DetourNavMeshQuery.h>
 
@@ -52,5 +53,29 @@ class NavMeshQuery
 
  private:
   dtNavMeshQuery* raw_ptr{nullptr};
+};
+
+class Crowd
+{
+ public:
+  Crowd() { raw_ptr = dtAllocCrowd(); }
+  ~Crowd()
+  {
+    if (raw_ptr != nullptr)
+    {
+      dtFreeCrowd(raw_ptr);
+    }
+  }
+
+ public:
+  Crowd& operator=(const Crowd&) = delete;
+  Crowd(const Crowd&) = delete;
+
+ public:
+  dtCrowd* ptr() { return raw_ptr; }
+  dtCrowd& ref() { return *raw_ptr; }
+
+ private:
+  dtCrowd* raw_ptr{nullptr};
 };
 } // namespace detour

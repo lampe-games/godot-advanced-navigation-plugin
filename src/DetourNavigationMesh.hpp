@@ -52,6 +52,8 @@ class DetourNavigationMesh : public godot::Resource
       godot::Vector3 search_box_half_extents) const;
   godot::PoolVector3Array get_detailed_path(godot::Vector3 begin, godot::Vector3 end) const;
 
+  std::shared_ptr<detour::NavMesh> get_detour_nav_mesh();
+
   void deserialize_detour_nav_mesh(godot::PoolByteArray);
   godot::PoolByteArray serialize_detour_nav_mesh() const;
 
@@ -59,7 +61,7 @@ class DetourNavigationMesh : public godot::Resource
   static std::string detour_status_to_string(dtStatus);
 
  private:
-  std::unique_ptr<detour::NavMesh> detour_nav_mesh{nullptr};
+  std::shared_ptr<detour::NavMesh> detour_nav_mesh{nullptr};
   std::unique_ptr<detour::NavMeshQuery> detour_nav_mesh_query{nullptr};
   dtQueryFilter filter;
 };

@@ -53,6 +53,7 @@ bool DetourNavigationMesh::build_from_polygon_mesh(
     Ref<RecastPolygonMesh> polygon_mesh,
     Ref<DetourNavigationMeshConfig> config)
 {
+  // !TODO: block if detour_nav_mesh points to !=nullptr and has use_count >1 (is used by Crowd)
   if (not polygon_mesh->is_baked() or config.is_null())
   {
     return false; // TODO: print proper error
@@ -112,7 +113,7 @@ bool DetourNavigationMesh::build_from_polygon_mesh(
     return false;
   }
 
-  std::unique_ptr<detour::NavMesh> a_detour_nav_mesh = std::make_unique<detour::NavMesh>();
+  std::shared_ptr<detour::NavMesh> a_detour_nav_mesh = std::make_shared<detour::NavMesh>();
   std::unique_ptr<detour::NavMeshQuery> a_detour_nav_mesh_query =
       std::make_unique<detour::NavMeshQuery>();
   if (a_detour_nav_mesh->ptr() == nullptr or a_detour_nav_mesh_query->ptr() == nullptr)
@@ -502,6 +503,11 @@ PoolVector3Array DetourNavigationMesh::get_detailed_path(Vector3 begin, Vector3 
   // }
 }
 
+std::shared_ptr<detour::NavMesh> DetourNavigationMesh::get_detour_nav_mesh()
+{
+  return detour_nav_mesh;
+}
+
 void DetourNavigationMesh::deserialize_detour_nav_mesh(PoolByteArray serialized_detour_nav_mesh)
 {
   // TODO: handle once multiple tiles supported
@@ -510,7 +516,7 @@ void DetourNavigationMesh::deserialize_detour_nav_mesh(PoolByteArray serialized_
     return;
   }
 
-  std::unique_ptr<detour::NavMesh> a_detour_nav_mesh = std::make_unique<detour::NavMesh>();
+  std::shared_ptr<detour::NavMesh> a_detour_nav_mesh = std::make_shared<detour::NavMesh>();
   std::unique_ptr<detour::NavMeshQuery> a_detour_nav_mesh_query =
       std::make_unique<detour::NavMeshQuery>();
   if (a_detour_nav_mesh->ptr() == nullptr or a_detour_nav_mesh_query->ptr() == nullptr)

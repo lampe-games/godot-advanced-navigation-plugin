@@ -8,7 +8,10 @@ class DetourCrowdConfig : public godot::Resource
   GODOT_CLASS(DetourCrowdConfig, godot::Resource);
 
  public:
-  static void _register_methods() {}
+  static void _register_methods()
+  {
+    // TODO: add ranges
+  }
 
   void _init() {}
 
@@ -16,6 +19,6 @@ class DetourCrowdConfig : public godot::Resource
   static constexpr float default_max_agent_radius{0.6};
 
  public:
-  int max_agents{default_max_agents};
-  float max_agent_radius{default_max_agent_radius};
+  int max_agents{default_max_agents}; // >=1
+  float max_agent_radius{default_max_agent_radius}; // >0
 };
