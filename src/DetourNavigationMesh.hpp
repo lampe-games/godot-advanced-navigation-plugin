@@ -59,7 +59,7 @@ class DetourNavigationMesh : public godot::Resource
   static std::string detour_status_to_string(dtStatus);
 
  private:
-  std::unique_ptr<Detour::NavMesh> detour_nav_mesh{nullptr};
-  std::unique_ptr<Detour::NavMeshQuery> detour_nav_mesh_query{nullptr};
+  std::unique_ptr<detour::NavMesh> detour_nav_mesh{nullptr};
+  std::unique_ptr<detour::NavMeshQuery> detour_nav_mesh_query{nullptr};
   dtQueryFilter filter;
 };

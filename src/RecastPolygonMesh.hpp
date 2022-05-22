@@ -46,7 +46,7 @@ class RecastPolygonMesh : public godot::Resource
   const rcPolyMeshDetail& get_recast_poly_mesh_detail() { return detailed_recast_mesh->ref(); }
 
  private:
-  std::unique_ptr<Recast::Heightfield> height_field_solid{nullptr};
-  std::unique_ptr<Recast::PolyMesh> simple_recast_mesh{nullptr};
-  std::unique_ptr<Recast::PolyMeshDetail> detailed_recast_mesh{nullptr};
+  std::unique_ptr<recast::Heightfield> height_field_solid{nullptr};
+  std::unique_ptr<recast::PolyMesh> simple_recast_mesh{nullptr};
+  std::unique_ptr<recast::PolyMeshDetail> detailed_recast_mesh{nullptr};
 };

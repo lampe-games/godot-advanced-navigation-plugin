@@ -4,7 +4,7 @@
 #include <DetourNavMeshQuery.h>
 
 // TODO: implement move oprators and make this class a template
-namespace Detour
+namespace detour
 {
 class NavMesh
 {
@@ -53,4 +53,4 @@ class NavMeshQuery
  private:
   dtNavMeshQuery* raw_ptr{nullptr};
 };
-} // namespace Detour
+} // namespace detour

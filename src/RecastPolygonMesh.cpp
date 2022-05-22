@@ -50,13 +50,13 @@ bool RecastPolygonMesh::build_from_raw_triangles(
         triangles_num);
   }
 
-  std::unique_ptr<Recast::Heightfield> height_field{std::make_unique<Recast::Heightfield>()};
-  std::unique_ptr<Recast::CompactHeightfield> compact_height_field{
-      std::make_unique<Recast::CompactHeightfield>()};
-  std::unique_ptr<Recast::ContourSet> contour_set{std::make_unique<Recast::ContourSet>()};
-  std::unique_ptr<Recast::PolyMesh> poly_mesh{std::make_unique<Recast::PolyMesh>()};
-  std::unique_ptr<Recast::PolyMeshDetail> poly_mesh_detail{
-      std::make_unique<Recast::PolyMeshDetail>()};
+  std::unique_ptr<recast::Heightfield> height_field{std::make_unique<recast::Heightfield>()};
+  std::unique_ptr<recast::CompactHeightfield> compact_height_field{
+      std::make_unique<recast::CompactHeightfield>()};
+  std::unique_ptr<recast::ContourSet> contour_set{std::make_unique<recast::ContourSet>()};
+  std::unique_ptr<recast::PolyMesh> poly_mesh{std::make_unique<recast::PolyMesh>()};
+  std::unique_ptr<recast::PolyMeshDetail> poly_mesh_detail{
+      std::make_unique<recast::PolyMeshDetail>()};
   if (height_field->ptr() == nullptr or compact_height_field->ptr() == nullptr or
       contour_set->ptr() == nullptr or poly_mesh->ptr() == nullptr or
       poly_mesh_detail->ptr() == nullptr)

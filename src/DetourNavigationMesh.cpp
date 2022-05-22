@@ -112,9 +112,9 @@ bool DetourNavigationMesh::build_from_polygon_mesh(
     return false;
   }
 
-  std::unique_ptr<Detour::NavMesh> a_detour_nav_mesh = std::make_unique<Detour::NavMesh>();
-  std::unique_ptr<Detour::NavMeshQuery> a_detour_nav_mesh_query =
-      std::make_unique<Detour::NavMeshQuery>();
+  std::unique_ptr<detour::NavMesh> a_detour_nav_mesh = std::make_unique<detour::NavMesh>();
+  std::unique_ptr<detour::NavMeshQuery> a_detour_nav_mesh_query =
+      std::make_unique<detour::NavMeshQuery>();
   if (a_detour_nav_mesh->ptr() == nullptr or a_detour_nav_mesh_query->ptr() == nullptr)
   {
     ERR_PRINT("Cannot allocate basic detour structures");
@@ -510,9 +510,9 @@ void DetourNavigationMesh::deserialize_detour_nav_mesh(PoolByteArray serialized_
     return;
   }
 
-  std::unique_ptr<Detour::NavMesh> a_detour_nav_mesh = std::make_unique<Detour::NavMesh>();
-  std::unique_ptr<Detour::NavMeshQuery> a_detour_nav_mesh_query =
-      std::make_unique<Detour::NavMeshQuery>();
+  std::unique_ptr<detour::NavMesh> a_detour_nav_mesh = std::make_unique<detour::NavMesh>();
+  std::unique_ptr<detour::NavMeshQuery> a_detour_nav_mesh_query =
+      std::make_unique<detour::NavMeshQuery>();
   if (a_detour_nav_mesh->ptr() == nullptr or a_detour_nav_mesh_query->ptr() == nullptr)
   {
     ERR_PRINT("Cannot allocate basic detour structures while deserializing navmesh");

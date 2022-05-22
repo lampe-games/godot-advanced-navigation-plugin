@@ -2,7 +2,7 @@
 
 #include <Recast.h>
 
-namespace Recast
+namespace recast
 {
 class Heightfield
 {
@@ -123,4 +123,4 @@ class PolyMeshDetail
  private:
   rcPolyMeshDetail* raw_ptr{nullptr};
 };
-} // namespace Recast
+} // namespace recast
