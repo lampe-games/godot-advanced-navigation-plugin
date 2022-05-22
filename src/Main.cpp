@@ -1,5 +1,6 @@
 #include "AdvancedNavigationMesh3D.hpp"
 #include "AdvancedNavigationServer3D.hpp"
+#include "DetourCrowd.hpp"
 #include "DetourNavigationMesh.hpp"
 #include "DetourNavigationMeshConfig.hpp"
 #include "InputGeometry.hpp"
@@ -28,4 +29,5 @@ extern "C" void GDN_EXPORT godot_nativescript_init(void* handle)
   godot::register_tool_class<RecastPolygonMeshConfig>();
   godot::register_tool_class<DetourNavigationMesh>();
   godot::register_tool_class<DetourNavigationMeshConfig>();
+  godot::register_tool_class<DetourCrowd>();
 }

@@ -16,6 +16,8 @@ void AdvancedNavigationServer3D::_register_methods()
   register_method(
       "create_empty_detour_navigation_mesh",
       &AdvancedNavigationServer3D::create_empty_detour_navigation_mesh);
+  register_method(
+      "create_empty_detour_crowd", &AdvancedNavigationServer3D::create_empty_detour_crowd);
 }
 
 Ref<RecastPolygonMesh> AdvancedNavigationServer3D::build_polygon_mesh(
@@ -63,4 +65,9 @@ Ref<DetourNavigationMeshConfig> AdvancedNavigationServer3D::
 Ref<DetourNavigationMesh> AdvancedNavigationServer3D::create_empty_detour_navigation_mesh() const
 {
   return DetourNavigationMesh::_new();
+}
+
+Ref<DetourCrowd> AdvancedNavigationServer3D::create_empty_detour_crowd() const
+{
+  return DetourCrowd::_new();
 }

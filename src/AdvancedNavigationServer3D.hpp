@@ -4,6 +4,7 @@
 #include <Mesh.hpp>
 #include <Node.hpp>
 
+#include "DetourCrowd.hpp"
 #include "DetourNavigationMesh.hpp"
 #include "InputGeometry.hpp"
 #include "RecastPolygonMesh.hpp"
@@ -28,4 +29,5 @@ class AdvancedNavigationServer3D : public Node
   Ref<RecastPolygonMeshConfig> create_empty_recast_polygon_mesh_config() const;
   Ref<DetourNavigationMeshConfig> create_empty_detour_navigation_mesh_config() const;
   Ref<DetourNavigationMesh> create_empty_detour_navigation_mesh() const;
+  Ref<DetourCrowd> create_empty_detour_crowd() const;
 };
