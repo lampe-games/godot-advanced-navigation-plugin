@@ -1,10 +1,13 @@
 #include "DetourCrowd.hpp"
 
+#include "DetourCrowdAgent.hpp"
+
 using namespace godot;
 
 void DetourCrowd::_register_methods()
 {
   register_method("initialize", &DetourCrowd::initialize);
+  register_method("create_agent", &DetourCrowd::create_agent);
 }
 
 bool DetourCrowd::initialize(
@@ -21,8 +24,13 @@ bool DetourCrowd::initialize(
     ERR_PRINT("Provided DetourNavigationMesh is null");
     return false;
   }
+  if (detour_crowd)
+  {
+    ERR_PRINT("Already initialized");
+    return false;
+  }
 
-  std::unique_ptr<detour::Crowd> a_detour_crowd = std::make_unique<detour::Crowd>();
+  std::shared_ptr<detour::Crowd> a_detour_crowd = std::make_shared<detour::Crowd>();
   if (a_detour_crowd->ptr() == nullptr)
   {
     ERR_PRINT("Cannot allocate basic detour crowd structures");
@@ -46,4 +54,21 @@ bool DetourCrowd::initialize(
   detour_nav_mesh = std::move(a_detour_nav_mesh);
 
   return true;
+}
+
+Ref<DetourCrowdAgent> DetourCrowd::create_agent(
+    Vector3 position,
+    Ref<DetourCrowdAgentConfig> config)
+{
+  auto agent = Ref<DetourCrowdAgent>(DetourCrowdAgent::_new());
+  if (agent->initialize(position, config, this))
+  {
+    return agent;
+  }
+  return nullptr;
+}
+
+std::shared_ptr<detour::Crowd> DetourCrowd::get_detour_crowd()
+{
+  return detour_crowd;
 }
