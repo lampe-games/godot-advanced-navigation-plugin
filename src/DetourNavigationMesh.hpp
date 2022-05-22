@@ -24,7 +24,7 @@ class DetourNavigationMesh : public godot::Resource
   };
 
   static constexpr float DEFAULT_SERACH_BOX_EXTENTS = 100.0;
-  static constexpr int MAX_POLYGONS_IN_PATH = 128;
+  static constexpr int MAX_POLYGONS_IN_PATH = 256; // 256 is an UB in Crowd module
 
  public:
   void _init();
