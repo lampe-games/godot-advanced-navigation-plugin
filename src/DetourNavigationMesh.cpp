@@ -9,11 +9,14 @@
 #include <DetourCommon.h>
 #include <DetourNavMeshBuilder.h>
 
+#include "DetourCrowd.hpp"
+
 using namespace godot;
 
 void DetourNavigationMesh::_register_methods()
 {
   register_method("build_from_input_geometry", &DetourNavigationMesh::build_from_input_geometry);
+  register_method("create_crowd", &DetourNavigationMesh::create_crowd);
   register_method("get_closest_point", &DetourNavigationMesh::get_closest_point);
   register_method(
       "get_closest_point_with_extents", &DetourNavigationMesh::get_closest_point_with_extents);
@@ -167,6 +170,16 @@ bool DetourNavigationMesh::build_from_polygon_mesh(
   }
 
   return true;
+}
+
+Ref<DetourCrowd> DetourNavigationMesh::create_crowd(Ref<DetourCrowdConfig> config) const
+{
+  Ref<DetourCrowd> crowd = Ref<DetourCrowd>(DetourCrowd::_new());
+  if (crowd->initialize(config, Ref<DetourNavigationMesh>(this)))
+  {
+    return crowd;
+  }
+  return nullptr;
 }
 
 Ref<Mesh> DetourNavigationMesh::get_detailed_mesh()

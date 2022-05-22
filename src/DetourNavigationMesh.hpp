@@ -7,9 +7,12 @@
 #include <Ref.hpp>
 #include <Resource.hpp>
 
+#include "DetourCrowdConfig.hpp"
 #include "DetourNavigationMeshConfig.hpp"
 #include "DetourWrappers.hpp"
 #include "RecastPolygonMesh.hpp"
+
+class DetourCrowd;
 
 class DetourNavigationMesh : public godot::Resource
 {
@@ -36,6 +39,8 @@ class DetourNavigationMesh : public godot::Resource
   bool build_from_polygon_mesh(
       godot::Ref<RecastPolygonMesh>,
       godot::Ref<DetourNavigationMeshConfig>);
+
+  godot::Ref<DetourCrowd> create_crowd(godot::Ref<DetourCrowdConfig>) const;
 
   godot::Ref<godot::Mesh> get_detailed_mesh();
 
