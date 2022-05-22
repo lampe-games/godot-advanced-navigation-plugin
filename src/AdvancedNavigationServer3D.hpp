@@ -31,4 +31,5 @@ class AdvancedNavigationServer3D : public godot::Node
   godot::Ref<DetourNavigationMesh> create_empty_detour_navigation_mesh() const;
   godot::Ref<DetourCrowdConfig> create_empty_detour_crowd_config() const;
   godot::Ref<DetourCrowd> create_empty_detour_crowd() const;
+  godot::Ref<DetourCrowdAgentConfig> create_empty_detour_crowd_agent_config() const;
 };

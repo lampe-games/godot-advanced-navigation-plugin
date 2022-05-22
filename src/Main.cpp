@@ -29,4 +29,5 @@ extern "C" void GDN_EXPORT godot_nativescript_init(void* handle)
   godot::register_tool_class<DetourNavigationMesh>();
   godot::register_tool_class<DetourCrowdConfig>();
   godot::register_tool_class<DetourCrowd>();
+  godot::register_tool_class<DetourCrowdAgentConfig>();
 }

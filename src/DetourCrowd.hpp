@@ -5,6 +5,7 @@
 #include <Godot.hpp>
 #include <Resource.hpp>
 
+#include "DetourCrowdAgentConfig.hpp"
 #include "DetourCrowdConfig.hpp"
 #include "DetourNavigationMesh.hpp"
 #include "DetourWrappers.hpp"
