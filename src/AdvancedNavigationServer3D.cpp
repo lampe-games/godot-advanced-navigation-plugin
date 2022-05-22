@@ -3,6 +3,8 @@
 #include <MeshInstance.hpp>
 #include <PlaneMesh.hpp>
 
+using namespace godot;
+
 void AdvancedNavigationServer3D::_register_methods()
 {
   register_method(

@@ -9,26 +9,26 @@
 #include "InputGeometry.hpp"
 #include "RecastPolygonMesh.hpp"
 
-using namespace godot;
-
-class AdvancedNavigationServer3D : public Node
+class AdvancedNavigationServer3D : public godot::Node
 {
-  GODOT_CLASS(AdvancedNavigationServer3D, Node);
+  GODOT_CLASS(AdvancedNavigationServer3D, godot::Node);
 
  public:
   static void _register_methods();
 
   void _init() {}
 
-  Ref<RecastPolygonMesh> build_polygon_mesh(Ref<InputGeometry>, Ref<RecastPolygonMeshConfig>);
-  Ref<DetourNavigationMesh> build_navigation_mesh(
-      Ref<RecastPolygonMesh>,
-      Ref<DetourNavigationMeshConfig>);
+  godot::Ref<RecastPolygonMesh> build_polygon_mesh(
+      godot::Ref<InputGeometry>,
+      godot::Ref<RecastPolygonMeshConfig>);
+  godot::Ref<DetourNavigationMesh> build_navigation_mesh(
+      godot::Ref<RecastPolygonMesh>,
+      godot::Ref<DetourNavigationMeshConfig>);
 
-  Ref<InputGeometry> create_empty_input_geometry() const;
-  Ref<RecastPolygonMeshConfig> create_empty_recast_polygon_mesh_config() const;
-  Ref<DetourNavigationMeshConfig> create_empty_detour_navigation_mesh_config() const;
-  Ref<DetourNavigationMesh> create_empty_detour_navigation_mesh() const;
-  Ref<DetourCrowdConfig> create_empty_detour_crowd_config() const;
-  Ref<DetourCrowd> create_empty_detour_crowd() const;
+  godot::Ref<InputGeometry> create_empty_input_geometry() const;
+  godot::Ref<RecastPolygonMeshConfig> create_empty_recast_polygon_mesh_config() const;
+  godot::Ref<DetourNavigationMeshConfig> create_empty_detour_navigation_mesh_config() const;
+  godot::Ref<DetourNavigationMesh> create_empty_detour_navigation_mesh() const;
+  godot::Ref<DetourCrowdConfig> create_empty_detour_crowd_config() const;
+  godot::Ref<DetourCrowd> create_empty_detour_crowd() const;
 };
