@@ -4,6 +4,13 @@ using namespace godot;
 
 void DetourCrowdAgent::_register_methods()
 {
+  godot::register_property<DetourCrowdAgent, int>(
+      "STATE_INVALID", nullptr, &DetourCrowdAgent::get_state_invalid, State::INVALID);
+  godot::register_property<DetourCrowdAgent, int>(
+      "STATE_WALKING", nullptr, &DetourCrowdAgent::get_state_walking, State::WALKING);
+  godot::register_property<DetourCrowdAgent, int>(
+      "STATE_OFFMESH", nullptr, &DetourCrowdAgent::get_state_offmesh, State::OFFMESH);
+
   godot::register_property<DetourCrowdAgent, Vector3>(
       "position", nullptr, &DetourCrowdAgent::get_position, Vector3::INF);
   godot::register_property<DetourCrowdAgent, int>(
