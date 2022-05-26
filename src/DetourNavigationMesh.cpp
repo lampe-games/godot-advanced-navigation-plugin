@@ -44,6 +44,7 @@ bool DetourNavigationMesh::build_from_input_geometry(
     Ref<RecastPolygonMeshConfig> recast_config,
     Ref<DetourNavigationMeshConfig> detour_config)
 {
+  // !TODO: block if detour_nav_mesh points to !=nullptr and has use_count >1 (is used by Crowd)
   Ref<RecastPolygonMesh> recast_polygon_mesh = Ref<RecastPolygonMesh>(RecastPolygonMesh::_new());
   if (not recast_polygon_mesh->build_from_input_geometry(input_geometry, recast_config))
   {

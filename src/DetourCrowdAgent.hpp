@@ -16,6 +16,7 @@ class DetourCrowdAgent : public godot::Resource
     WALKING,
     OFFMESH
   };
+
   static void _register_methods();
 
   void _init() {}
@@ -25,6 +26,9 @@ class DetourCrowdAgent : public godot::Resource
       godot::Ref<DetourCrowdAgentConfig>,
       godot::Ref<DetourCrowd>);
 
+  bool set_target(godot::Vector3 target);
+  bool set_target_with_extents(godot::Vector3 target, godot::Vector3 search_box_half_extents);
+
   godot::Vector3 get_position() const;
   int get_state() const;
 
@@ -33,7 +37,7 @@ class DetourCrowdAgent : public godot::Resource
   int get_state_offmesh() const { return State::OFFMESH; }
 
  public:
-  std::shared_ptr<detour::Crowd> raw_detour_crowd{nullptr};
+  std::shared_ptr<detour::Crowd> detour_crowd{nullptr};
   const dtCrowdAgent* const_detour_crowd_agent{nullptr};
   dtCrowdAgent* detour_crowd_agent{nullptr};
 };

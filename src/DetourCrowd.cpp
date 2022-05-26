@@ -46,7 +46,7 @@ bool DetourCrowd::initialize(
   if (not a_detour_crowd->ref().init(
           config->max_agents, config->max_agent_radius, a_detour_nav_mesh->ptr()))
   {
-    ERR_PRINT("Could not initialize drCrowd");
+    ERR_PRINT("Could not initialize dtCrowd");
     return false;
   }
 

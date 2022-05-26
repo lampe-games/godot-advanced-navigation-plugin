@@ -4,25 +4,27 @@ using namespace godot;
 
 void DetourCrowdAgent::_register_methods()
 {
-  godot::register_property<DetourCrowdAgent, int>(
+  register_property<DetourCrowdAgent, int>(
       "STATE_INVALID", nullptr, &DetourCrowdAgent::get_state_invalid, State::INVALID);
-  godot::register_property<DetourCrowdAgent, int>(
+  register_property<DetourCrowdAgent, int>(
       "STATE_WALKING", nullptr, &DetourCrowdAgent::get_state_walking, State::WALKING);
-  godot::register_property<DetourCrowdAgent, int>(
+  register_property<DetourCrowdAgent, int>(
       "STATE_OFFMESH", nullptr, &DetourCrowdAgent::get_state_offmesh, State::OFFMESH);
 
-  godot::register_property<DetourCrowdAgent, Vector3>(
+  register_method("set_target", &DetourCrowdAgent::set_target);
+  register_method("set_target_with_extents", &DetourCrowdAgent::set_target_with_extents);
+
+  register_property<DetourCrowdAgent, Vector3>(
       "position", nullptr, &DetourCrowdAgent::get_position, Vector3::INF);
-  godot::register_property<DetourCrowdAgent, int>(
-      "state", nullptr, &DetourCrowdAgent::get_state, -1);
+  register_property<DetourCrowdAgent, int>("state", nullptr, &DetourCrowdAgent::get_state, -1);
 }
 
 bool DetourCrowdAgent::initialize(
     Vector3 position,
     godot::Ref<DetourCrowdAgentConfig> config,
-    godot::Ref<DetourCrowd> detour_crowd)
+    godot::Ref<DetourCrowd> detour_crowd_ref)
 {
-  if (detour_crowd.is_null())
+  if (detour_crowd_ref.is_null())
   {
     ERR_PRINT("'DetourCrowd' is null");
     return false;
@@ -32,8 +34,8 @@ bool DetourCrowdAgent::initialize(
     ERR_PRINT("'DetourCrowdAgentConfig' is null");
     return false;
   }
-  auto a_raw_detour_crowd = detour_crowd->get_detour_crowd();
-  if (not a_raw_detour_crowd)
+  auto a_detour_crowd = detour_crowd_ref->get_detour_crowd();
+  if (not a_detour_crowd)
   {
     ERR_PRINT("'DetourCrowd' not initialized");
     return false;
@@ -41,18 +43,35 @@ bool DetourCrowdAgent::initialize(
 
   const float* position_raw = &position.coord[0];
   dtCrowdAgentParams agent_params{}; // TODO: fill
-  auto agent_id = a_raw_detour_crowd->ref().addAgent(position_raw, &agent_params);
+  auto agent_id = a_detour_crowd->ref().addAgent(position_raw, &agent_params);
   if (agent_id < 0)
   {
     ERR_PRINT("addAgent() failed");
     return false;
   }
 
-  raw_detour_crowd = std::move(a_raw_detour_crowd);
-  const_detour_crowd_agent = raw_detour_crowd->ref().getAgent(agent_id);
-  detour_crowd_agent = raw_detour_crowd->ref().getEditableAgent(agent_id);
+  detour_crowd = std::move(a_detour_crowd);
+  const_detour_crowd_agent = detour_crowd->ref().getAgent(agent_id);
+  detour_crowd_agent = detour_crowd->ref().getEditableAgent(agent_id);
 
   return true;
+}
+
+bool DetourCrowdAgent::set_target(godot::Vector3 target)
+{
+  // return set_target_with_extents(
+  //     target,
+  //     Vector3(DEFAULT_SERACH_BOX_EXTENTS, DEFAULT_SERACH_BOX_EXTENTS, DEFAULT_SERACH_BOX_EXTENTS));
+  return false;
+}
+
+bool DetourCrowdAgent::set_target_with_extents(
+    godot::Vector3 target,
+    godot::Vector3 search_box_half_extents)
+{
+  // dtQueryFilter filter;
+  // filter.setIncludeFlags(POLYGON_SEARCHABLE);
+  return false;
 }
 
 Vector3 DetourCrowdAgent::get_position() const
