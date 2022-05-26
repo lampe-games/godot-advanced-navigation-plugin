@@ -5,7 +5,6 @@
 #include <Godot.hpp>
 #include <Resource.hpp>
 
-// #include "DetourCrowdAgent.hpp"
 #include "DetourCrowdAgentConfig.hpp"
 #include "DetourCrowdConfig.hpp"
 #include "DetourNavigationMesh.hpp"
@@ -28,9 +27,11 @@ class DetourCrowd : public godot::Resource
       godot::Vector3 position,
       godot::Ref<DetourCrowdAgentConfig>);
 
+  godot::Ref<DetourNavigationMesh> get_detour_navigation_mesh_ref();
   std::shared_ptr<detour::Crowd> get_detour_crowd();
 
  private:
+  godot::Ref<DetourNavigationMesh> detour_navigation_mesh_ref{nullptr};
   std::shared_ptr<detour::Crowd> detour_crowd{nullptr};
   std::shared_ptr<detour::NavMesh> detour_nav_mesh{nullptr};
 };

@@ -12,14 +12,14 @@ void DetourCrowd::_register_methods()
 
 bool DetourCrowd::initialize(
     godot::Ref<DetourCrowdConfig> config,
-    godot::Ref<DetourNavigationMesh> detour_navigation_mesh)
+    godot::Ref<DetourNavigationMesh> a_detour_navigation_mesh_ref)
 {
   if (config.is_null())
   {
     ERR_PRINT("Provided DetourCrowdConfig is null");
     return false;
   }
-  if (detour_navigation_mesh.is_null())
+  if (a_detour_navigation_mesh_ref.is_null())
   {
     ERR_PRINT("Provided DetourNavigationMesh is null");
     return false;
@@ -36,7 +36,7 @@ bool DetourCrowd::initialize(
     ERR_PRINT("Cannot allocate basic detour crowd structures");
     return false;
   }
-  auto a_detour_nav_mesh = detour_navigation_mesh->get_detour_nav_mesh();
+  auto a_detour_nav_mesh = a_detour_navigation_mesh_ref->get_detour_nav_mesh();
   if (a_detour_nav_mesh == nullptr)
   {
     ERR_PRINT("Provided DetourNavigationMesh is not built");
@@ -50,6 +50,7 @@ bool DetourCrowd::initialize(
     return false;
   }
 
+  detour_navigation_mesh_ref = a_detour_navigation_mesh_ref;
   detour_crowd = std::move(a_detour_crowd);
   detour_nav_mesh = std::move(a_detour_nav_mesh);
 
@@ -66,6 +67,11 @@ Ref<DetourCrowdAgent> DetourCrowd::create_agent(
     return agent;
   }
   return nullptr;
+}
+
+Ref<DetourNavigationMesh> DetourCrowd::get_detour_navigation_mesh_ref()
+{
+  return detour_navigation_mesh_ref;
 }
 
 std::shared_ptr<detour::Crowd> DetourCrowd::get_detour_crowd()

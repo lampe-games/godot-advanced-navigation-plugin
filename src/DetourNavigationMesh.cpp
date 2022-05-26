@@ -287,6 +287,30 @@ Vector3 DetourNavigationMesh::get_closest_point_with_extents(
   return Vector3::INF;
 }
 
+std::tuple<Vector3, dtPolyRef> DetourNavigationMesh::get_closest_point_and_poly_with_extents_quiet(
+    Vector3 target_point,
+    Vector3 a_search_box_half_extents) const
+{
+  constexpr dtPolyRef invalid_polygon = 0;
+  if (not detour_nav_mesh_query)
+  {
+    return std::make_tuple(Vector3::INF, invalid_polygon);
+  }
+  float* search_box_center = &target_point.coord[0];
+  // TODO: warn about big extents yielding large processing time
+  float* search_box_half_extents = &a_search_box_half_extents.coord[0];
+  dtPolyRef closest_polygon;
+  float closest_point[3];
+  auto outcome = detour_nav_mesh_query->ref().findNearestPoly(
+      search_box_center, search_box_half_extents, &filter, &closest_polygon, closest_point);
+  if (DT_SUCCESS == outcome and closest_polygon != invalid_polygon)
+  {
+    return std::make_tuple(
+        Vector3(closest_point[0], closest_point[1], closest_point[2]), closest_polygon);
+  }
+  return std::make_tuple(Vector3::INF, invalid_polygon);
+}
+
 PoolVector3Array DetourNavigationMesh::get_simple_path(Vector3 begin, Vector3 end, bool simplified)
     const
 {

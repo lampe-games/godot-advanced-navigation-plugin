@@ -50,27 +50,41 @@ bool DetourCrowdAgent::initialize(
     return false;
   }
 
+  detour_navigation_mesh_ref = detour_crowd_ref->get_detour_navigation_mesh_ref();
   detour_crowd = std::move(a_detour_crowd);
   const_detour_crowd_agent = detour_crowd->ref().getAgent(agent_id);
   detour_crowd_agent = detour_crowd->ref().getEditableAgent(agent_id);
+  detour_crowd_agent_id = agent_id;
 
   return true;
 }
 
 bool DetourCrowdAgent::set_target(godot::Vector3 target)
 {
-  // return set_target_with_extents(
-  //     target,
-  //     Vector3(DEFAULT_SERACH_BOX_EXTENTS, DEFAULT_SERACH_BOX_EXTENTS, DEFAULT_SERACH_BOX_EXTENTS));
-  return false;
+  return set_target_with_extents(
+      target,
+      Vector3(
+          detour_navigation_mesh_ref->DEFAULT_SERACH_BOX_EXTENTS,
+          detour_navigation_mesh_ref->DEFAULT_SERACH_BOX_EXTENTS,
+          detour_navigation_mesh_ref->DEFAULT_SERACH_BOX_EXTENTS));
 }
 
-bool DetourCrowdAgent::set_target_with_extents(
-    godot::Vector3 target,
-    godot::Vector3 search_box_half_extents)
+bool DetourCrowdAgent::set_target_with_extents(Vector3 target, Vector3 search_box_half_extents)
 {
-  // dtQueryFilter filter;
-  // filter.setIncludeFlags(POLYGON_SEARCHABLE);
+  Vector3 aligned_target;
+  dtPolyRef polygon;
+  std::tie(aligned_target, polygon) =
+      detour_navigation_mesh_ref->get_closest_point_and_poly_with_extents_quiet(
+          target, search_box_half_extents);
+  if (aligned_target == Vector3::INF)
+  {
+    return false;
+  }
+  //    requestMoveTarget()
+  // bool dtCrowd::requestMoveTarget	(	const int 	idx,
+  // dtPolyRef 	ref,
+  // const float * 	pos
+  // )
   return false;
 }
 

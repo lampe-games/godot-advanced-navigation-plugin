@@ -37,7 +37,9 @@ class DetourCrowdAgent : public godot::Resource
   int get_state_offmesh() const { return State::OFFMESH; }
 
  public:
+  godot::Ref<DetourNavigationMesh> detour_navigation_mesh_ref{nullptr};
   std::shared_ptr<detour::Crowd> detour_crowd{nullptr};
   const dtCrowdAgent* const_detour_crowd_agent{nullptr};
   dtCrowdAgent* detour_crowd_agent{nullptr};
+  int detour_crowd_agent_id;
 };
