@@ -2,6 +2,13 @@
 
 using namespace godot;
 
+#define RETURN_IF_UNINITIALIZED(x)                   \
+  if (detour_crowd == nullptr)                       \
+  {                                                  \
+    ERR_PRINT("'DetourCrowdAgent' Not initialized"); \
+    return x;                                        \
+  }
+
 void DetourCrowdAgent::_register_methods()
 {
   register_property<DetourCrowdAgent, int>(
@@ -72,7 +79,7 @@ bool DetourCrowdAgent::set_target(godot::Vector3 target)
 
 bool DetourCrowdAgent::set_target_with_extents(Vector3 target, Vector3 search_box_half_extents)
 {
-  // TODO: check detour_crowd validity
+  RETURN_IF_UNINITIALIZED(false);
   Vector3 aligned_target;
   dtPolyRef polygon;
   std::tie(aligned_target, polygon) =
@@ -88,7 +95,7 @@ bool DetourCrowdAgent::set_target_with_extents(Vector3 target, Vector3 search_bo
 
 Vector3 DetourCrowdAgent::get_target() const
 {
-  // TODO: check validity
+  RETURN_IF_UNINITIALIZED(Vector3::INF);
   if (const_detour_crowd_agent->targetState == DT_CROWDAGENT_TARGET_NONE)
   {
     return Vector3::INF;
@@ -101,21 +108,13 @@ Vector3 DetourCrowdAgent::get_target() const
 
 Vector3 DetourCrowdAgent::get_position() const
 {
-  if (const_detour_crowd_agent == nullptr)
-  {
-    ERR_PRINT("not initialized");
-    return Vector3::INF;
-  }
+  RETURN_IF_UNINITIALIZED(Vector3::INF);
   const float* position_raw = const_detour_crowd_agent->npos;
   return Vector3(position_raw[0], position_raw[1], position_raw[2]);
 }
 
 int DetourCrowdAgent::get_state() const
 {
-  if (const_detour_crowd_agent == nullptr)
-  {
-    ERR_PRINT("not initialized");
-    return -1;
-  }
+  RETURN_IF_UNINITIALIZED(-1);
   return static_cast<int>(const_detour_crowd_agent->state);
 }
