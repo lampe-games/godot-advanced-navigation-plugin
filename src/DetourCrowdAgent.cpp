@@ -13,6 +13,7 @@ void DetourCrowdAgent::_register_methods()
 
   register_method("set_target", &DetourCrowdAgent::set_target);
   register_method("set_target_with_extents", &DetourCrowdAgent::set_target_with_extents);
+  register_method("get_target", &DetourCrowdAgent::get_target);
 
   register_property<DetourCrowdAgent, Vector3>(
       "position", nullptr, &DetourCrowdAgent::get_position, Vector3::INF);
@@ -71,6 +72,7 @@ bool DetourCrowdAgent::set_target(godot::Vector3 target)
 
 bool DetourCrowdAgent::set_target_with_extents(Vector3 target, Vector3 search_box_half_extents)
 {
+  // TODO: check detour_crowd validity
   Vector3 aligned_target;
   dtPolyRef polygon;
   std::tie(aligned_target, polygon) =
@@ -80,12 +82,21 @@ bool DetourCrowdAgent::set_target_with_extents(Vector3 target, Vector3 search_bo
   {
     return false;
   }
-  //    requestMoveTarget()
-  // bool dtCrowd::requestMoveTarget	(	const int 	idx,
-  // dtPolyRef 	ref,
-  // const float * 	pos
-  // )
-  return false;
+  return detour_crowd->ref().requestMoveTarget(
+      detour_crowd_agent_id, polygon, &aligned_target.coord[0]);
+}
+
+Vector3 DetourCrowdAgent::get_target() const
+{
+  // TODO: check validity
+  if (const_detour_crowd_agent->targetState == DT_CROWDAGENT_TARGET_NONE)
+  {
+    return Vector3::INF;
+  }
+  return Vector3(
+      const_detour_crowd_agent->targetPos[0],
+      const_detour_crowd_agent->targetPos[1],
+      const_detour_crowd_agent->targetPos[2]);
 }
 
 Vector3 DetourCrowdAgent::get_position() const
