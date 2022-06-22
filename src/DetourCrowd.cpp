@@ -8,6 +8,7 @@ void DetourCrowd::_register_methods()
 {
   register_method("initialize", &DetourCrowd::initialize);
   register_method("create_agent", &DetourCrowd::create_agent);
+  register_method("update", &DetourCrowd::update);
 }
 
 bool DetourCrowd::initialize(
@@ -61,12 +62,19 @@ Ref<DetourCrowdAgent> DetourCrowd::create_agent(
     Vector3 position,
     Ref<DetourCrowdAgentConfig> config)
 {
+  // TODO: return if uninitialized
   auto agent = Ref<DetourCrowdAgent>(DetourCrowdAgent::_new());
   if (agent->initialize(position, config, this))
   {
     return agent;
   }
   return nullptr;
+}
+
+void DetourCrowd::update(float seconds)
+{
+  // TODO: return if uninitialized
+  detour_crowd->ref().update(seconds, nullptr);
 }
 
 Ref<DetourNavigationMesh> DetourCrowd::get_detour_navigation_mesh_ref()

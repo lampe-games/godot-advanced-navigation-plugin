@@ -27,6 +27,8 @@ class DetourCrowd : public godot::Resource
       godot::Vector3 position,
       godot::Ref<DetourCrowdAgentConfig>);
 
+  void update(float seconds);
+
   godot::Ref<DetourNavigationMesh> get_detour_navigation_mesh_ref();
   std::shared_ptr<detour::Crowd> get_detour_crowd();
 
