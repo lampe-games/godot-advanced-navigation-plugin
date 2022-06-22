@@ -50,11 +50,11 @@ bool DetourCrowdAgent::initialize(
   }
 
   const float* position_raw = &position.coord[0];
-  dtCrowdAgentParams agent_params{}; // TODO: fill
-  agent_params.radius = 0.3;
+  dtCrowdAgentParams agent_params{}; // TODO: fill all
+  agent_params.radius = config->radius;
   // agent_params.height = 0.6;
-  agent_params.maxAcceleration = 1.0; // TODO: pass
-  agent_params.maxSpeed = 1.0; // TODO: pass
+  agent_params.maxAcceleration = config->max_acceleration;
+  agent_params.maxSpeed = config->max_speed;
   // agent_params.collisionQueryRange = 1.0;
   // agent_params.pathOptimizationRange = agent_params.radius * 30.0;
   // agent_params.separationWeight = 0;
