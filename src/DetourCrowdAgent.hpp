@@ -31,6 +31,7 @@ class DetourCrowdAgent : public godot::Resource
   godot::Vector3 get_target() const;
 
   godot::Vector3 get_position() const;
+  godot::Vector3 get_velocity() const;
   int get_state() const;
 
   int get_state_invalid() const { return State::INVALID; }

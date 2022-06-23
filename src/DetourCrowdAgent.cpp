@@ -24,6 +24,8 @@ void DetourCrowdAgent::_register_methods()
 
   register_property<DetourCrowdAgent, Vector3>(
       "position", nullptr, &DetourCrowdAgent::get_position, Vector3::INF);
+  register_property<DetourCrowdAgent, Vector3>(
+      "velocity", nullptr, &DetourCrowdAgent::get_velocity, Vector3::INF);
   register_property<DetourCrowdAgent, int>("state", nullptr, &DetourCrowdAgent::get_state, -1);
 }
 
@@ -58,6 +60,7 @@ bool DetourCrowdAgent::initialize(
   // agent_params.collisionQueryRange = 1.0;
   // agent_params.pathOptimizationRange = agent_params.radius * 30.0;
   // agent_params.separationWeight = 0;
+  // agent_params.updateFlags = DT_CROWD_ANTICIPATE_TURNS;
   // agent_params.updateFlags = DT_CROWD_ANTICIPATE_TURNS | DT_CROWD_OBSTACLE_AVOIDANCE |
   //     DT_CROWD_ANTICIPATE_TURNS | DT_CROWD_OPTIMIZE_VIS | DT_CROWD_OPTIMIZE_TOPO;
   // agent_params.obstacleAvoidanceType = 0;
@@ -122,6 +125,13 @@ Vector3 DetourCrowdAgent::get_position() const
   RETURN_IF_UNINITIALIZED(Vector3::INF);
   const float* position_raw = const_detour_crowd_agent->npos;
   return Vector3(position_raw[0], position_raw[1], position_raw[2]);
+}
+
+Vector3 DetourCrowdAgent::get_velocity() const
+{
+  RETURN_IF_UNINITIALIZED(Vector3::INF);
+  const float* velocity_raw = const_detour_crowd_agent->vel;
+  return Vector3(velocity_raw[0], velocity_raw[1], velocity_raw[2]);
 }
 
 int DetourCrowdAgent::get_state() const
