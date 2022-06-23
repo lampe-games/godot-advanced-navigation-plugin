@@ -51,7 +51,17 @@ bool DetourCrowdAgent::initialize(
     return false;
   }
 
-  const float* position_raw = &position.coord[0];
+  Vector3 aligned_position;
+  auto a_detour_navigation_mesh_ref = detour_crowd_ref->get_detour_navigation_mesh_ref();
+  std::tie(aligned_position, std::ignore) =
+      a_detour_navigation_mesh_ref->get_closest_point_and_poly_with_extents_quiet(
+          position,
+          Vector3(
+              a_detour_navigation_mesh_ref->DEFAULT_SERACH_BOX_EXTENTS,
+              a_detour_navigation_mesh_ref->DEFAULT_SERACH_BOX_EXTENTS,
+              a_detour_navigation_mesh_ref->DEFAULT_SERACH_BOX_EXTENTS));
+  aligned_position = aligned_position == Vector3::INF ? position : aligned_position;
+  const float* position_raw = &aligned_position.coord[0];
   dtCrowdAgentParams agent_params{}; // TODO: fill all
   agent_params.radius = config->radius;
   // agent_params.height = 0.6;
