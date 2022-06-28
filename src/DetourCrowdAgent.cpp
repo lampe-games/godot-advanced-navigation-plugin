@@ -64,13 +64,14 @@ bool DetourCrowdAgent::initialize(
   const float* position_raw = &aligned_position.coord[0];
   dtCrowdAgentParams agent_params{}; // TODO: fill all
   agent_params.radius = config->radius;
-  // agent_params.height = 0.6;
+  agent_params.height = config->height;
   agent_params.maxAcceleration = config->max_acceleration;
   agent_params.maxSpeed = config->max_speed;
-  // agent_params.collisionQueryRange = 1.0;
-  // agent_params.pathOptimizationRange = agent_params.radius * 30.0;
-  // agent_params.separationWeight = 0;
-  // agent_params.updateFlags = DT_CROWD_ANTICIPATE_TURNS;
+  agent_params.collisionQueryRange = config->collision_query_range;
+  agent_params.pathOptimizationRange = config->path_optimization_range;
+  agent_params.separationWeight = config->separation_weight;
+  agent_params.updateFlags = DT_CROWD_ANTICIPATE_TURNS | DT_CROWD_OBSTACLE_AVOIDANCE |
+      DT_CROWD_SEPARATION | DT_CROWD_OPTIMIZE_VIS | DT_CROWD_OPTIMIZE_TOPO;
   // agent_params.updateFlags = DT_CROWD_ANTICIPATE_TURNS | DT_CROWD_OBSTACLE_AVOIDANCE |
   //     DT_CROWD_ANTICIPATE_TURNS | DT_CROWD_OPTIMIZE_VIS | DT_CROWD_OPTIMIZE_TOPO;
   // agent_params.obstacleAvoidanceType = 0;

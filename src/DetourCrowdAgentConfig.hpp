@@ -11,9 +11,12 @@ class DetourCrowdAgentConfig : public godot::Resource
   void _init() {}
 
   static constexpr float default_radius{0.6};
-  // static constexpr float default_height{}; // TODO:
+  static constexpr float default_height{2.0};
   static constexpr float default_max_acceleration{0.6};
-  static constexpr float default_max_speed = 1.2;
+  static constexpr float default_max_speed{1.2};
+  static constexpr float default_collision_query_range{default_radius * 8};
+  static constexpr float default_path_optimization_range{default_radius * 30};
+  static constexpr float default_separation_weight{5.0};
 
   static void _register_methods()
   {
@@ -21,14 +24,29 @@ class DetourCrowdAgentConfig : public godot::Resource
     godot::register_property<DetourCrowdAgentConfig, float>(
         "radius", &DetourCrowdAgentConfig::radius, default_radius);
     godot::register_property<DetourCrowdAgentConfig, float>(
+        "height", &DetourCrowdAgentConfig::height, default_height);
+    godot::register_property<DetourCrowdAgentConfig, float>(
         "max_acceleration", &DetourCrowdAgentConfig::max_acceleration, default_max_acceleration);
     godot::register_property<DetourCrowdAgentConfig, float>(
         "max_speed", &DetourCrowdAgentConfig::max_speed, default_max_speed);
+    godot::register_property<DetourCrowdAgentConfig, float>(
+        "collision_query_range",
+        &DetourCrowdAgentConfig::collision_query_range,
+        default_collision_query_range);
+    godot::register_property<DetourCrowdAgentConfig, float>(
+        "path_optimization_range",
+        &DetourCrowdAgentConfig::path_optimization_range,
+        default_path_optimization_range);
+    godot::register_property<DetourCrowdAgentConfig, float>(
+        "separation_weight", &DetourCrowdAgentConfig::separation_weight, default_separation_weight);
   }
 
  public:
   float radius{default_radius}; // >=0, 0 not working, so more likely >0
-  // float height;
+  float height{default_height}; // >0
   float max_acceleration{default_max_acceleration}; // >= 0
   float max_speed{default_max_speed}; // >= 0
+  float collision_query_range{default_collision_query_range}; // >0
+  float path_optimization_range{default_path_optimization_range}; // >0
+  float separation_weight{default_separation_weight}; // >=0
 };
