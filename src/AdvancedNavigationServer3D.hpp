@@ -25,6 +25,7 @@ class AdvancedNavigationServer3D : public godot::Node
       godot::Ref<RecastPolygonMesh>,
       godot::Ref<DetourNavigationMeshConfig>);
 
+  // TODO: rename to get_empty_* and remove below ones once not used anymore
   godot::Ref<InputGeometry> create_empty_input_geometry() const;
   godot::Ref<RecastPolygonMeshConfig> create_empty_recast_polygon_mesh_config() const;
   godot::Ref<DetourNavigationMeshConfig> create_empty_detour_navigation_mesh_config() const;
