@@ -10,6 +10,8 @@ void AdvancedNavigationServer3D::_register_methods()
   register_method(
       "create_empty_input_geometry", &AdvancedNavigationServer3D::create_empty_input_geometry);
   register_method(
+      "get_empty_input_geometry", &AdvancedNavigationServer3D::create_empty_input_geometry);
+  register_method(
       "create_empty_recast_polygon_mesh_config",
       &AdvancedNavigationServer3D::create_empty_recast_polygon_mesh_config);
   register_method(

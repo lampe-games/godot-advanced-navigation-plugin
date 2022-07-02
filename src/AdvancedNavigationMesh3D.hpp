@@ -31,6 +31,7 @@ class AdvancedNavigationMesh3D : public Spatial
   void _ready();
 
   void bake();
+  void bake_from_input_geometry(godot::Ref<InputGeometry>);
   void clear();
 
   godot::PoolVector3Array get_simple_path(godot::Vector3 begin, godot::Vector3 end, bool simplified)

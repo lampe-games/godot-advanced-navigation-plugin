@@ -16,6 +16,7 @@ void AdvancedNavigationMesh3D::_register_methods()
   register_method("_ready", &AdvancedNavigationMesh3D::_ready);
 
   register_method("bake", &AdvancedNavigationMesh3D::bake);
+  register_method("bake_from_input_geometry", &AdvancedNavigationMesh3D::bake_from_input_geometry);
   register_method("clear", &AdvancedNavigationMesh3D::clear);
 
   register_method("get_simple_path", &AdvancedNavigationMesh3D::get_simple_path);
@@ -265,6 +266,45 @@ void AdvancedNavigationMesh3D::bake()
   }
 }
 
+void AdvancedNavigationMesh3D::bake_from_input_geometry(godot::Ref<InputGeometry> input_geometry)
+{
+  if (input_geometry.is_null())
+  {
+    ERR_PRINT("'InputGeometry' is null");
+    return;
+  }
+  auto polygon_mesh_config = create_recast_polygon_mesh_config();
+  if (polygon_mesh_config.is_null())
+  {
+    ERR_PRINT("Failed creating 'RecastPolygonMeshConfig'");
+    return;
+  }
+  Ref<RecastPolygonMesh> a_polygon_mesh{RecastPolygonMesh::_new()};
+  if (not a_polygon_mesh->build_from_input_geometry(input_geometry, polygon_mesh_config))
+  {
+    ERR_PRINT("Failed building 'RecastPolygonMesh'");
+    return;
+  }
+  auto navigation_mesh_config = create_detour_navigation_mesh_config(polygon_mesh_config);
+  if (navigation_mesh_config.is_null())
+  {
+    ERR_PRINT("Failed creating 'DetourNavigationMeshConfig'");
+    return;
+  }
+  Ref<DetourNavigationMesh> a_navigation_mesh{DetourNavigationMesh::_new()};
+  if (not a_navigation_mesh->build_from_polygon_mesh(a_polygon_mesh, navigation_mesh_config))
+  {
+    ERR_PRINT("Failed building 'DetourNavigationMesh'");
+    return;
+  }
+  polygon_mesh = a_polygon_mesh;
+  navigation_mesh = a_navigation_mesh;
+  if (debug_mesh_instance != nullptr)
+  {
+    update_debug_mesh_instance(get_debug_mesh());
+  }
+}
+
 void AdvancedNavigationMesh3D::clear()
 {
   if (get_tree()->is_debugging_navigation_hint() or Engine::get_singleton()->is_editor_hint())
@@ -300,8 +340,11 @@ void AdvancedNavigationMesh3D::create_debug_mesh_instance()
 
 void AdvancedNavigationMesh3D::update_debug_mesh_instance(Ref<Mesh> mesh)
 {
-  debug_mesh_instance->set_mesh(mesh);
-  debug_mesh_instance->set_material_override(get_debug_mesh_material());
+  if (debug_mesh_instance != nullptr)
+  {
+    debug_mesh_instance->set_mesh(mesh);
+    debug_mesh_instance->set_material_override(get_debug_mesh_material());
+  }
 }
 
 Ref<Mesh> AdvancedNavigationMesh3D::get_debug_mesh()
@@ -362,6 +405,7 @@ Ref<Material> AdvancedNavigationMesh3D::create_transparent_debug_mesh_material()
   material->set_flag(SpatialMaterial::FLAG_UNSHADED, true);
   material->set_feature(SpatialMaterial::FEATURE_TRANSPARENT, true);
   material->set_albedo(Color(1.0, 0.0, 0.0, 0.4));
+  material->set_render_priority(127);
   return material;
 }
 
