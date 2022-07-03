@@ -45,7 +45,7 @@ bool RecastPolygonMesh::build_from_raw_triangles(
   if (config->pipeline_logs)
   {
     Godot::print(
-        "RecastPolygonMesh::build_from_raw_triangles(,vertices_num={0},,triangles_num={1})",
+        "RecastPolygonMesh::build_from_raw_triangles(vertices_num={0},triangles_num={1})",
         vertices_num,
         triangles_num);
   }

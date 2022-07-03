@@ -1,8 +1,12 @@
 #include "InputGeometry.hpp"
 
+#include <BoxShape.hpp>
+#include <CubeMesh.hpp>
 #include <Mesh.hpp>
 #include <MeshInstance.hpp>
+#include <Shape.hpp>
 #include <Spatial.hpp>
+#include <StaticBody.hpp>
 
 using namespace godot;
 
@@ -28,10 +32,11 @@ void InputGeometry::add_nodes(godot::Array nodes)
       continue;
     }
     // TODO: handle other nodes as well
-    if (not Object::cast_to<MeshInstance>(node))
+    if (not Object::cast_to<MeshInstance>(node) and not Object::cast_to<StaticBody>(node))
     {
       continue;
     }
+    // TODO: don't add duplicates
     nodes_to_parse.append(node);
   }
 }
@@ -72,8 +77,7 @@ void InputGeometry::add_resources_with_transforms(godot::Array resources, godot:
 Array InputGeometry::get_ccw_triangles()
 {
   // TODO: refactor
-  // TODO: check how to get triangles from meshes properly
-  // TODO: do not process duplicates
+  // TODO: do not process duplicates (same resources w/ same transforms)
   Array triangles;
   triangles.resize(Mesh::ARRAY_MAX);
   PoolVector3Array triangle_vertices;
@@ -91,6 +95,38 @@ Array InputGeometry::get_ccw_triangles()
       {
         copy_mesh_to_arrays_ccw(
             **mesh, mesh_instance->get_global_transform(), triangle_vertices, triangle_indices);
+      }
+    }
+    else if (Object::cast_to<StaticBody>(item))
+    {
+      StaticBody* static_body = Object::cast_to<StaticBody>(item);
+      auto shape_owners = static_body->get_shape_owners();
+      for (int shape_owner_index = 0; shape_owner_index < shape_owners.size(); shape_owner_index++)
+      {
+        auto shape_owner_id = shape_owners[shape_owner_index];
+        const auto shape_transform = static_body->get_global_transform() *
+            static_body->shape_owner_get_transform(shape_owner_id);
+        for (int shape_index = 0;
+             shape_index < static_body->shape_owner_get_shape_count(shape_owner_id);
+             shape_index++)
+        {
+          Ref<Shape> shape = static_body->shape_owner_get_shape(shape_owner_id, shape_index);
+          if (Object::cast_to<BoxShape>(*shape))
+          {
+            BoxShape* box = Object::cast_to<BoxShape>(*shape);
+            Ref<CubeMesh> cube_mesh;
+            cube_mesh.instance();
+            cube_mesh->set_size(box->get_extents() * 2.0);
+            copy_mesh_to_arrays_ccw(
+                **cube_mesh, shape_transform, triangle_vertices, triangle_indices);
+          }
+          else
+          {
+            ERR_PRINT(
+                String("'{0}' converter to mesh is not implemented").format(Array::make(shape)));
+            // TODO: implement others using 3035b9c44c5b026e2bf6f6faa6589271f90de320 from Godot
+          }
+        }
       }
     }
   }

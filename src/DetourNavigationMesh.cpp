@@ -99,8 +99,8 @@ bool DetourNavigationMesh::build_from_polygon_mesh(
   if (config->logs)
   {
     Godot::print(
-        "dtNavMeshCreateParams: (...)\n| walkableHeight: {0}\n|walkableRadius: "
-        "{1}\n|walkableClimb: {2}\n|cs: {3}\n| ch: {4}\n| buildBvTree: {5}",
+        "dtNavMeshCreateParams: (...)\n| walkableHeight: {0}\n| walkableRadius: "
+        "{1}\n| walkableClimb: {2}\n| cs: {3}\n| ch: {4}\n| buildBvTree: {5}",
         params.walkableHeight,
         params.walkableRadius,
         params.walkableClimb,
