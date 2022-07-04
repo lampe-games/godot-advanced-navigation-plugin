@@ -1,5 +1,7 @@
 #pragma once
 
+#include <set>
+
 #include <Godot.hpp>
 #include <Mesh.hpp>
 #include <Node.hpp>
@@ -18,12 +20,10 @@ class AdvancedNavigationServer3D : public godot::Node
 
   void _init() {}
 
-  godot::Ref<RecastPolygonMesh> build_polygon_mesh(
-      godot::Ref<InputGeometry>,
-      godot::Ref<RecastPolygonMeshConfig>);
-  godot::Ref<DetourNavigationMesh> build_navigation_mesh(
-      godot::Ref<RecastPolygonMesh>,
-      godot::Ref<DetourNavigationMeshConfig>);
+  void _physics_process(float delta);
+
+  void register_detour_crowd(godot::Ref<DetourCrowd>);
+  void deregister_detour_crowd(godot::Ref<DetourCrowd>);
 
   // TODO: rename to get_empty_* and remove below ones once not used anymore
   godot::Ref<InputGeometry> create_empty_input_geometry() const;
@@ -33,4 +33,7 @@ class AdvancedNavigationServer3D : public godot::Node
   godot::Ref<DetourCrowdConfig> create_empty_detour_crowd_config() const;
   godot::Ref<DetourCrowd> create_empty_detour_crowd() const;
   godot::Ref<DetourCrowdAgentConfig> create_empty_detour_crowd_agent_config() const;
+
+ private:
+  std::set<godot::Ref<DetourCrowd>> crowds_to_update{};
 };

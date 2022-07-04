@@ -234,50 +234,10 @@ void AdvancedNavigationMesh3D::_ready()
 
 void AdvancedNavigationMesh3D::bake()
 {
-  if (get_tree()->is_debugging_navigation_hint() or Engine::get_singleton()->is_editor_hint())
-  {
-    auto* server =
-        get_tree()->get_root()->get_node<AdvancedNavigationServer3D>("AdvancedNavigationServer3D");
-    if (server == nullptr)
-    {
-      ERR_PRINT("Failed finding 'AdvancedNavigationServer3D' autoload");
-      return;
-    }
-    auto recast_polygon_mesh_config = create_recast_polygon_mesh_config();
-    if (recast_polygon_mesh_config.is_null())
-    {
-      ERR_PRINT("Failed creating 'RecastPolygonMeshConfig'");
-      return;
-    }
-    Ref<InputGeometry> input_geometry = Ref<InputGeometry>(InputGeometry::_new());
-    auto nodes_to_parse = get_children(); // TODO: proper discovery
-    input_geometry->add_nodes(nodes_to_parse);
-    auto a_polygon_mesh = server->build_polygon_mesh(input_geometry, recast_polygon_mesh_config);
-    if (a_polygon_mesh.is_null())
-    {
-      ERR_PRINT("Failed building 'RecastPolygonMesh'");
-      return;
-    }
-    polygon_mesh = a_polygon_mesh; // TODO: clarify if makes sense to assign here
-    auto detour_navigation_mesh_config =
-        create_detour_navigation_mesh_config(recast_polygon_mesh_config);
-    if (detour_navigation_mesh_config.is_null())
-    {
-      ERR_PRINT("Failed creating 'DetourNavigationMeshConfig'");
-      return;
-    }
-    auto a_navigation_mesh =
-        server->build_navigation_mesh(polygon_mesh, detour_navigation_mesh_config);
-    if (a_navigation_mesh.is_null())
-    {
-      ERR_PRINT("Failed creating 'DetourNavigationMesh'");
-      return;
-    }
-    navigation_mesh = a_navigation_mesh;
-    create_crowd();
-    update_debug_mesh_instance(get_debug_mesh());
-    emit_signal("baked");
-  }
+  Ref<InputGeometry> input_geometry = Ref<InputGeometry>(InputGeometry::_new());
+  auto nodes_to_parse = get_children(); // TODO: proper discovery
+  input_geometry->add_nodes(nodes_to_parse);
+  bake_from_input_geometry(input_geometry);
 }
 
 void AdvancedNavigationMesh3D::bake_from_input_geometry(godot::Ref<InputGeometry> input_geometry)
@@ -313,10 +273,12 @@ void AdvancedNavigationMesh3D::bake_from_input_geometry(godot::Ref<InputGeometry
   }
   polygon_mesh = a_polygon_mesh;
   navigation_mesh = a_navigation_mesh;
+  create_crowd();
   if (debug_mesh_instance != nullptr)
   {
     update_debug_mesh_instance(get_debug_mesh());
   }
+  emit_signal("baked");
 }
 
 void AdvancedNavigationMesh3D::clear()
@@ -350,6 +312,7 @@ Ref<DetourCrowd> AdvancedNavigationMesh3D::get_crowd()
 
 void AdvancedNavigationMesh3D::create_crowd()
 {
+  // TODO: try removing old crowd (deregister from server)
   // TODO: calculate crowd config:
   auto detour_crowd_config = Ref<DetourCrowdConfig>(DetourCrowdConfig::_new());
   auto a_crowd = navigation_mesh->create_crowd(detour_crowd_config);
@@ -359,6 +322,14 @@ void AdvancedNavigationMesh3D::create_crowd()
     return;
   }
   crowd = a_crowd;
+  auto* server =
+      get_tree()->get_root()->get_node<AdvancedNavigationServer3D>("AdvancedNavigationServer3D");
+  if (server == nullptr)
+  {
+    ERR_PRINT("Could not register crowd, 'AdvancedNavigationServer3D' is missing");
+    return;
+  }
+  server->register_detour_crowd(crowd);
 }
 
 void AdvancedNavigationMesh3D::create_debug_mesh_instance()

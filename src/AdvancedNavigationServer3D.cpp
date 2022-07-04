@@ -7,6 +7,9 @@ using namespace godot;
 
 void AdvancedNavigationServer3D::_register_methods()
 {
+  register_method("_physics_process", &AdvancedNavigationServer3D::_physics_process);
+  register_method("register_detour_crowd", &AdvancedNavigationServer3D::register_detour_crowd);
+  register_method("deregister_detour_crowd", &AdvancedNavigationServer3D::deregister_detour_crowd);
   register_method(
       "create_empty_input_geometry", &AdvancedNavigationServer3D::create_empty_input_geometry);
   register_method(
@@ -30,28 +33,29 @@ void AdvancedNavigationServer3D::_register_methods()
       &AdvancedNavigationServer3D::create_empty_detour_crowd_agent_config);
 }
 
-Ref<RecastPolygonMesh> AdvancedNavigationServer3D::build_polygon_mesh(
-    Ref<InputGeometry> input_geometry,
-    Ref<RecastPolygonMeshConfig> config)
+void AdvancedNavigationServer3D::_physics_process(float delta)
 {
-  Ref<RecastPolygonMesh> rc_poly_mesh{RecastPolygonMesh::_new()};
-  if (rc_poly_mesh->build_from_input_geometry(input_geometry, config))
+  for (auto crowd_it = crowds_to_update.begin(); crowd_it != crowds_to_update.end(); crowd_it++)
   {
-    return rc_poly_mesh;
+    godot::Ref<DetourCrowd> crowd = *crowd_it;
+    crowd->update(delta);
   }
-  return nullptr;
 }
 
-Ref<DetourNavigationMesh> AdvancedNavigationServer3D::build_navigation_mesh(
-    Ref<RecastPolygonMesh> polygon_mesh,
-    Ref<DetourNavigationMeshConfig> config)
+void AdvancedNavigationServer3D::register_detour_crowd(Ref<DetourCrowd> crowd)
 {
-  Ref<DetourNavigationMesh> navigation_mesh{DetourNavigationMesh::_new()};
-  if (navigation_mesh->build_from_polygon_mesh(polygon_mesh, config))
+  if (crowd.is_valid())
   {
-    return navigation_mesh;
+    crowds_to_update.insert(crowd);
   }
-  return nullptr;
+}
+
+void AdvancedNavigationServer3D::deregister_detour_crowd(Ref<DetourCrowd> crowd)
+{
+  if (crowd.is_valid())
+  {
+    crowds_to_update.erase(crowd);
+  }
 }
 
 Ref<InputGeometry> AdvancedNavigationServer3D::create_empty_input_geometry() const
@@ -63,7 +67,6 @@ Ref<RecastPolygonMeshConfig> AdvancedNavigationServer3D::create_empty_recast_pol
     const
 {
   return RecastPolygonMeshConfig::_new();
-  ;
 }
 
 Ref<DetourNavigationMeshConfig> AdvancedNavigationServer3D::
