@@ -13,6 +13,8 @@
 
 void AdvancedNavigationMesh3D::_register_methods()
 {
+  // methods
+
   register_method("_ready", &AdvancedNavigationMesh3D::_ready);
 
   register_method("bake", &AdvancedNavigationMesh3D::bake);
@@ -20,6 +22,10 @@ void AdvancedNavigationMesh3D::_register_methods()
   register_method("clear", &AdvancedNavigationMesh3D::clear);
 
   register_method("get_simple_path", &AdvancedNavigationMesh3D::get_simple_path);
+
+  // signals
+
+  register_signal<AdvancedNavigationMesh3D>("baked");
 
   // properties
 
@@ -210,6 +216,15 @@ void AdvancedNavigationMesh3D::_init()
 
 void AdvancedNavigationMesh3D::_ready()
 {
+  if (navigation_mesh.is_valid())
+  {
+    create_crowd();
+    auto was_deserialized = polygon_mesh.is_null();
+    if (was_deserialized)
+    {
+      emit_signal("baked");
+    }
+  }
   if (get_tree()->is_debugging_navigation_hint() or Engine::get_singleton()->is_editor_hint())
   {
     create_debug_mesh_instance();
@@ -243,7 +258,7 @@ void AdvancedNavigationMesh3D::bake()
       ERR_PRINT("Failed building 'RecastPolygonMesh'");
       return;
     }
-    polygon_mesh = a_polygon_mesh;
+    polygon_mesh = a_polygon_mesh; // TODO: clarify if makes sense to assign here
     auto detour_navigation_mesh_config =
         create_detour_navigation_mesh_config(recast_polygon_mesh_config);
     if (detour_navigation_mesh_config.is_null())
@@ -253,16 +268,15 @@ void AdvancedNavigationMesh3D::bake()
     }
     auto a_navigation_mesh =
         server->build_navigation_mesh(polygon_mesh, detour_navigation_mesh_config);
-    if (a_navigation_mesh.is_valid())
-    {
-      navigation_mesh = a_navigation_mesh;
-      update_debug_mesh_instance(get_debug_mesh());
-    }
-    else
+    if (a_navigation_mesh.is_null())
     {
       ERR_PRINT("Failed creating 'DetourNavigationMesh'");
-      clear();
+      return;
     }
+    navigation_mesh = a_navigation_mesh;
+    create_crowd();
+    update_debug_mesh_instance(get_debug_mesh());
+    emit_signal("baked");
   }
 }
 
@@ -327,6 +341,24 @@ PoolVector3Array AdvancedNavigationMesh3D::get_simple_path(
   }
   return navigation_mesh->get_simple_path(begin, end, simplified);
   return result;
+}
+
+Ref<DetourCrowd> AdvancedNavigationMesh3D::get_crowd()
+{
+  return crowd;
+}
+
+void AdvancedNavigationMesh3D::create_crowd()
+{
+  // TODO: calculate crowd config:
+  auto detour_crowd_config = Ref<DetourCrowdConfig>(DetourCrowdConfig::_new());
+  auto a_crowd = navigation_mesh->create_crowd(detour_crowd_config);
+  if (a_crowd.is_null())
+  {
+    ERR_PRINT("Failed creating 'DetourCrowd'");
+    return;
+  }
+  crowd = a_crowd;
 }
 
 void AdvancedNavigationMesh3D::create_debug_mesh_instance()

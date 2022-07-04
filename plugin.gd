@@ -17,7 +17,13 @@ func _enter_tree():
 		"AdvancedNavigationMesh3D",
 		"Spatial",
 		preload("res://addons/godot-advanced-navigation-plugin/nodes/AdvancedNavigationMesh3D.gdns"),
-		get_editor_interface().get_base_control().get_icon("Spatial", "EditorIcons")
+		get_editor_interface().get_base_control().get_icon("Navigation", "EditorIcons")
+	)
+	add_custom_type(
+		"AdvancedNavigationAgent3D",
+		"Node",
+		preload("res://addons/godot-advanced-navigation-plugin/nodes/AdvancedNavigationAgent3D.gdns"),
+		get_editor_interface().get_base_control().get_icon("NavigationAgent", "EditorIcons")
 	)
 	_navigation_mesh_menu = MenuButton.new()
 	_navigation_mesh_menu.text = "Navigation mesh"
