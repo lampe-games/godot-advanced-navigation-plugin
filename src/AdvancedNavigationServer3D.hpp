@@ -1,5 +1,6 @@
 #pragma once
 
+#include <map>
 #include <set>
 
 #include <Godot.hpp>
@@ -7,6 +8,7 @@
 #include <Node.hpp>
 
 #include "DetourCrowd.hpp"
+#include "DetourCrowdAgent.hpp"
 #include "DetourNavigationMesh.hpp"
 #include "InputGeometry.hpp"
 #include "RecastPolygonMesh.hpp"
@@ -25,6 +27,9 @@ class AdvancedNavigationServer3D : public godot::Node
   void register_detour_crowd(godot::Ref<DetourCrowd>);
   void deregister_detour_crowd(godot::Ref<DetourCrowd>);
 
+  void register_detour_crowd_agent(godot::Ref<DetourCrowd>, godot::Ref<DetourCrowdAgent>);
+  void deregister_detour_crowd_agent(godot::Ref<DetourCrowd>, godot::Ref<DetourCrowdAgent>);
+
   // TODO: rename to get_empty_* and remove below ones once not used anymore
   godot::Ref<InputGeometry> create_empty_input_geometry() const;
   godot::Ref<RecastPolygonMeshConfig> create_empty_recast_polygon_mesh_config() const;
@@ -36,4 +41,6 @@ class AdvancedNavigationServer3D : public godot::Node
 
  private:
   std::set<godot::Ref<DetourCrowd>> crowds_to_update{};
+  std::map<godot::Ref<DetourCrowd>, std::set<godot::Ref<DetourCrowdAgent>>>
+      crowd_agents_to_update{};
 };

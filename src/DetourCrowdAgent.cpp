@@ -11,6 +11,7 @@ using namespace godot;
 
 void DetourCrowdAgent::_register_methods()
 {
+  // methods
   register_property<DetourCrowdAgent, int>(
       "STATE_INVALID", nullptr, &DetourCrowdAgent::get_state_invalid, State::INVALID);
   register_property<DetourCrowdAgent, int>(
@@ -27,6 +28,10 @@ void DetourCrowdAgent::_register_methods()
   register_property<DetourCrowdAgent, Vector3>(
       "velocity", nullptr, &DetourCrowdAgent::get_velocity, Vector3::INF);
   register_property<DetourCrowdAgent, int>("state", nullptr, &DetourCrowdAgent::get_state, -1);
+
+  // signals
+  register_signal<DetourCrowdAgent>("new_position", "position", GODOT_VARIANT_TYPE_VECTOR3);
+  register_signal<DetourCrowdAgent>("new_velocity", "velocity", GODOT_VARIANT_TYPE_VECTOR3);
 }
 
 bool DetourCrowdAgent::initialize(
@@ -90,6 +95,15 @@ bool DetourCrowdAgent::initialize(
   detour_crowd_agent_id = agent_id;
 
   return true;
+}
+
+void DetourCrowdAgent::update()
+{
+  if (detour_crowd_agent != nullptr)
+  {
+    emit_signal("new_position", get_position());
+    emit_signal("new_velocity", get_velocity());
+  }
 }
 
 bool DetourCrowdAgent::set_target(godot::Vector3 target)
