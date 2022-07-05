@@ -38,21 +38,14 @@ void AdvancedNavigationAgent3D::_register_methods()
       "new_velocity", "velocity", GODOT_VARIANT_TYPE_VECTOR3);
 }
 
-void AdvancedNavigationAgent3D::_init()
-{
-  Godot::print("AdvancedNavigationAgent3D::_init()");
-}
-
 void AdvancedNavigationAgent3D::_ready()
 {
   // TODO: navi auto-discovery (along parents)
-  Godot::print("AdvancedNavigationAgent3D::_ready()");
 }
 
 void AdvancedNavigationAgent3D::set_navigation_mesh(
     AdvancedNavigationMesh3D* a_navigation_mesh_node)
 {
-  Godot::print("AdvancedNavigationAgent3D::set_navigation_mesh() {0}", a_navigation_mesh_node);
   if (navigation_mesh_node != nullptr)
   {
     navigation_mesh_node->disconnect("baked", this, "on_navigation_mesh_baked");
@@ -86,7 +79,6 @@ void AdvancedNavigationAgent3D::set_position(godot::Vector3 a_position)
 
 void AdvancedNavigationAgent3D::set_target(godot::Vector3 a_target)
 {
-  Godot::print("AdvancedNavigationAgent3D::set_target()");
   if (a_target == Vector3::INF)
   {
     // TODO: stop movement
@@ -105,7 +97,6 @@ void AdvancedNavigationAgent3D::set_target(godot::Vector3 a_target)
 
 godot::Vector3 AdvancedNavigationAgent3D::get_position()
 {
-  Godot::print("AdvancedNavigationAgent3D::get_position()");
   if (agent.is_valid())
   {
     return agent->get_position();
@@ -115,38 +106,25 @@ godot::Vector3 AdvancedNavigationAgent3D::get_position()
 
 godot::Vector3 AdvancedNavigationAgent3D::get_target()
 {
-  Godot::print("AdvancedNavigationAgent3D::get_target()");
   return Vector3::INF;
 }
 
 void AdvancedNavigationAgent3D::try_fetching_crowd()
 {
   Ref<DetourCrowd> a_crowd = navigation_mesh_node->get_crowd();
-  if (a_crowd.is_null())
+  if (a_crowd.is_null() or a_crowd == crowd)
   {
-    Godot::print("AdvancedNavigationAgent3D::try_fetching_crowd(): too early");
-    return;
-  }
-  if (a_crowd == crowd)
-  {
-    Godot::print("AdvancedNavigationAgent3D::try_fetching_crowd(): already done");
     return;
   }
   crowd = a_crowd;
   agent = Ref<DetourCrowdAgent>(); // !TODO: deregister from server as well
   // !TODO: disconnect old agent's signals as well
-  Godot::print("AdvancedNavigationAgent3D::try_fetching_crowd(): ok");
 }
 
 void AdvancedNavigationAgent3D::try_creating_agent()
 {
-  if (agent.is_valid() or crowd.is_null())
+  if (agent.is_valid() or crowd.is_null() or requested_position == Vector3::INF)
   {
-    return;
-  }
-  if (requested_position == Vector3::INF)
-  {
-    Godot::print("AdvancedNavigationAgent3D::try_creating_agent(): waiting for position");
     return;
   }
   // TODO: create proper config:
@@ -174,7 +152,6 @@ void AdvancedNavigationAgent3D::try_creating_agent()
     return;
   }
   server->register_detour_crowd_agent(crowd, agent);
-  Godot::print("AdvancedNavigationAgent3D::try_creating_agent(): ok");
 }
 
 void AdvancedNavigationAgent3D::on_navigation_mesh_baked()

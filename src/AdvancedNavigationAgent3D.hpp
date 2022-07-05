@@ -13,7 +13,7 @@ class AdvancedNavigationAgent3D : public godot::Node
  public:
   static void _register_methods();
 
-  void _init();
+  void _init() {}
   void _ready();
 
   void set_navigation_mesh(AdvancedNavigationMesh3D*);
