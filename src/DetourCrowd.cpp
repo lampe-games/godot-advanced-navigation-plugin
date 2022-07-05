@@ -6,9 +6,13 @@ using namespace godot;
 
 void DetourCrowd::_register_methods()
 {
+  // methods
   register_method("initialize", &DetourCrowd::initialize);
   register_method("create_agent", &DetourCrowd::create_agent);
   register_method("update", &DetourCrowd::update);
+
+  // signals
+  register_signal<DetourCrowd>("updated");
 }
 
 bool DetourCrowd::initialize(
@@ -75,6 +79,7 @@ void DetourCrowd::update(float seconds)
 {
   // TODO: return if uninitialized
   detour_crowd->ref().update(seconds, nullptr);
+  emit_signal("updated");
 }
 
 Ref<DetourNavigationMesh> DetourCrowd::get_detour_navigation_mesh_ref()

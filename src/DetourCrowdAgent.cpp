@@ -22,6 +22,7 @@ void DetourCrowdAgent::_register_methods()
   register_method("set_target", &DetourCrowdAgent::set_target);
   register_method("set_target_with_extents", &DetourCrowdAgent::set_target_with_extents);
   register_method("get_target", &DetourCrowdAgent::get_target);
+  register_method("on_crowd_updated", &DetourCrowdAgent::on_crowd_updated);
 
   register_property<DetourCrowdAgent, Vector3>(
       "position", nullptr, &DetourCrowdAgent::get_position, Vector3::INF);
@@ -88,6 +89,7 @@ bool DetourCrowdAgent::initialize(
     return false;
   }
 
+  detour_crowd_ref->connect("updated", this, "on_crowd_updated");
   detour_navigation_mesh_ref = detour_crowd_ref->get_detour_navigation_mesh_ref();
   detour_crowd = std::move(a_detour_crowd);
   const_detour_crowd_agent = detour_crowd->ref().getAgent(agent_id);
@@ -95,15 +97,6 @@ bool DetourCrowdAgent::initialize(
   detour_crowd_agent_id = agent_id;
 
   return true;
-}
-
-void DetourCrowdAgent::update()
-{
-  if (detour_crowd_agent != nullptr)
-  {
-    emit_signal("new_position", get_position());
-    emit_signal("new_velocity", get_velocity());
-  }
 }
 
 bool DetourCrowdAgent::set_target(godot::Vector3 target)
@@ -163,4 +156,13 @@ int DetourCrowdAgent::get_state() const
 {
   RETURN_IF_UNINITIALIZED(-1);
   return static_cast<int>(const_detour_crowd_agent->state);
+}
+
+void DetourCrowdAgent::on_crowd_updated()
+{
+  if (detour_crowd_agent != nullptr)
+  {
+    emit_signal("new_position", get_position());
+    emit_signal("new_velocity", get_velocity());
+  }
 }

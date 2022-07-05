@@ -1,10 +1,5 @@
 #include "AdvancedNavigationAgent3D.hpp"
 
-#include <SceneTree.hpp>
-#include <Viewport.hpp>
-
-#include "AdvancedNavigationServer3D.hpp"
-
 using namespace godot;
 
 void AdvancedNavigationAgent3D::_register_methods()
@@ -117,7 +112,7 @@ void AdvancedNavigationAgent3D::try_fetching_crowd()
     return;
   }
   crowd = a_crowd;
-  agent = Ref<DetourCrowdAgent>(); // !TODO: deregister from server as well
+  agent = Ref<DetourCrowdAgent>();
   // !TODO: disconnect old agent's signals as well
 }
 
@@ -144,14 +139,6 @@ void AdvancedNavigationAgent3D::try_creating_agent()
   }
   agent->connect("new_position", this, "on_new_position");
   agent->connect("new_velocity", this, "on_new_velocity");
-  auto* server =
-      get_tree()->get_root()->get_node<AdvancedNavigationServer3D>("AdvancedNavigationServer3D");
-  if (server == nullptr)
-  {
-    ERR_PRINT("Could not register agent, 'AdvancedNavigationServer3D' is missing");
-    return;
-  }
-  server->register_detour_crowd_agent(crowd, agent);
 }
 
 void AdvancedNavigationAgent3D::on_navigation_mesh_baked()
