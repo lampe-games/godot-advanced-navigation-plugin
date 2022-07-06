@@ -112,6 +112,10 @@ bool DetourCrowdAgent::set_target(godot::Vector3 target)
 bool DetourCrowdAgent::set_target_with_extents(Vector3 target, Vector3 search_box_half_extents)
 {
   RETURN_IF_UNINITIALIZED(false);
+  if (target == Vector3::INF)
+  {
+    return detour_crowd->ref().resetMoveTarget(detour_crowd_agent_id);
+  }
   Vector3 aligned_target;
   dtPolyRef polygon;
   std::tie(aligned_target, polygon) =
@@ -160,7 +164,8 @@ int DetourCrowdAgent::get_state() const
 
 void DetourCrowdAgent::on_crowd_updated()
 {
-  if (detour_crowd_agent != nullptr)
+  if (detour_crowd_agent != nullptr &&
+      const_detour_crowd_agent->targetState == DT_CROWDAGENT_TARGET_VALID)
   {
     emit_signal("new_position", get_position());
     emit_signal("new_velocity", get_velocity());

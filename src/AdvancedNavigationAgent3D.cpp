@@ -19,18 +19,54 @@ void AdvancedNavigationAgent3D::_register_methods()
       "position",
       &AdvancedNavigationAgent3D::set_position,
       &AdvancedNavigationAgent3D::get_position,
-      Vector3::INF);
+      Vector3::INF,
+      GODOT_METHOD_RPC_MODE_DISABLED,
+      GODOT_PROPERTY_USAGE_NOEDITOR);
   register_property<AdvancedNavigationAgent3D, Vector3>(
       "target",
       &AdvancedNavigationAgent3D::set_target,
       &AdvancedNavigationAgent3D::get_target,
-      Vector3::INF);
+      Vector3::INF,
+      GODOT_METHOD_RPC_MODE_DISABLED,
+      GODOT_PROPERTY_USAGE_NOEDITOR);
+
+  // TODO: make sure the agent resource is recreated each time we change properties
+  // TODO: add hints
+  godot::register_property<AdvancedNavigationAgent3D, float>(
+      "target_desired_distance",
+      &AdvancedNavigationAgent3D::target_desired_distance,
+      default_target_desired_distance);
+  godot::register_property<AdvancedNavigationAgent3D, float>(
+      "radius", &AdvancedNavigationAgent3D::radius, DetourCrowdAgentConfig::default_radius);
+  godot::register_property<AdvancedNavigationAgent3D, float>(
+      "height", &AdvancedNavigationAgent3D::height, DetourCrowdAgentConfig::default_height);
+  godot::register_property<AdvancedNavigationAgent3D, float>(
+      "max_acceleration",
+      &AdvancedNavigationAgent3D::max_acceleration,
+      DetourCrowdAgentConfig::default_max_acceleration);
+  godot::register_property<AdvancedNavigationAgent3D, float>(
+      "max_speed",
+      &AdvancedNavigationAgent3D::max_speed,
+      DetourCrowdAgentConfig::default_max_speed);
+  godot::register_property<AdvancedNavigationAgent3D, float>(
+      "collision_query_range",
+      &AdvancedNavigationAgent3D::collision_query_range,
+      DetourCrowdAgentConfig::default_collision_query_range);
+  godot::register_property<AdvancedNavigationAgent3D, float>(
+      "path_optimization_range",
+      &AdvancedNavigationAgent3D::path_optimization_range,
+      DetourCrowdAgentConfig::default_path_optimization_range);
+  godot::register_property<AdvancedNavigationAgent3D, float>(
+      "separation_weight",
+      &AdvancedNavigationAgent3D::separation_weight,
+      DetourCrowdAgentConfig::default_separation_weight);
 
   // signals
   register_signal<AdvancedNavigationAgent3D>(
       "new_position", "position", GODOT_VARIANT_TYPE_VECTOR3);
   register_signal<AdvancedNavigationAgent3D>(
       "new_velocity", "velocity", GODOT_VARIANT_TYPE_VECTOR3);
+  register_signal<AdvancedNavigationAgent3D>("target_reached");
 }
 
 void AdvancedNavigationAgent3D::_ready()
@@ -74,12 +110,6 @@ void AdvancedNavigationAgent3D::set_position(godot::Vector3 a_position)
 
 void AdvancedNavigationAgent3D::set_target(godot::Vector3 a_target)
 {
-  if (a_target == Vector3::INF)
-  {
-    // TODO: stop movement
-    ERR_PRINT("Not implemented");
-    return;
-  }
   if (agent.is_valid())
   {
     agent->set_target(a_target);
@@ -101,6 +131,10 @@ godot::Vector3 AdvancedNavigationAgent3D::get_position()
 
 godot::Vector3 AdvancedNavigationAgent3D::get_target()
 {
+  if (agent.is_valid())
+  {
+    return agent->get_target();
+  }
   return Vector3::INF;
 }
 
@@ -112,8 +146,12 @@ void AdvancedNavigationAgent3D::try_fetching_crowd()
     return;
   }
   crowd = a_crowd;
+  if (agent.is_valid())
+  {
+    agent->disconnect("new_position", this, "on_new_position");
+    agent->disconnect("new_velocity", this, "on_new_velocity");
+  }
   agent = Ref<DetourCrowdAgent>();
-  // !TODO: disconnect old agent's signals as well
 }
 
 void AdvancedNavigationAgent3D::try_creating_agent()
@@ -122,9 +160,7 @@ void AdvancedNavigationAgent3D::try_creating_agent()
   {
     return;
   }
-  // TODO: create proper config:
-  auto config = Ref<DetourCrowdAgentConfig>(DetourCrowdAgentConfig::_new());
-  auto a_agent = crowd->create_agent(requested_position, config);
+  auto a_agent = crowd->create_agent(requested_position, create_detour_crowd_agent_config());
   requested_position = Vector3::INF;
   if (a_agent.is_null())
   {
@@ -141,6 +177,19 @@ void AdvancedNavigationAgent3D::try_creating_agent()
   agent->connect("new_velocity", this, "on_new_velocity");
 }
 
+Ref<DetourCrowdAgentConfig> AdvancedNavigationAgent3D::create_detour_crowd_agent_config() const
+{
+  Ref<DetourCrowdAgentConfig> config(DetourCrowdAgentConfig::_new());
+  config->radius = radius;
+  config->height = height;
+  config->max_acceleration = max_acceleration;
+  config->max_speed = max_speed;
+  config->collision_query_range = collision_query_range;
+  config->path_optimization_range = path_optimization_range;
+  config->separation_weight = separation_weight;
+  return config;
+}
+
 void AdvancedNavigationAgent3D::on_navigation_mesh_baked()
 {
   try_fetching_crowd();
@@ -150,6 +199,11 @@ void AdvancedNavigationAgent3D::on_navigation_mesh_baked()
 void AdvancedNavigationAgent3D::on_new_position(godot::Vector3 position)
 {
   emit_signal("new_position", position);
+  if (position.distance_to(get_target()) <= target_desired_distance)
+  {
+    set_target(Vector3::INF);
+    emit_signal("target_reached");
+  }
 }
 
 void AdvancedNavigationAgent3D::on_new_velocity(godot::Vector3 velocity)
