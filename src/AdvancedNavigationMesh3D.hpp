@@ -7,7 +7,6 @@
 #include <Spatial.hpp>
 #include <SpatialMaterial.hpp>
 
-#include "DetourCrowd.hpp"
 #include "DetourNavigationMesh.hpp"
 #include "RecastPolygonMesh.hpp"
 
@@ -38,7 +37,7 @@ class AdvancedNavigationMesh3D : public Spatial
   godot::PoolVector3Array get_simple_path(godot::Vector3 begin, godot::Vector3 end, bool simplified)
       const;
 
-  godot::Ref<DetourCrowd> get_crowd();
+  godot::Ref<DetourNavigationMesh> get_navigation_mesh();
 
   // rasterization:
   static constexpr float default_cell_size{0.3};
@@ -71,7 +70,6 @@ class AdvancedNavigationMesh3D : public Spatial
   static constexpr int default_debug_mesh_type{DEBUG_MESH_TYPE_DETOUR_NAVMESH};
 
  private:
-  void create_crowd();
   void create_debug_mesh_instance();
   void update_debug_mesh_instance(Ref<Mesh>);
   Ref<Mesh> get_debug_mesh();
@@ -110,5 +108,4 @@ class AdvancedNavigationMesh3D : public Spatial
   Ref<Material> solid_debug_mesh_material{nullptr};
   Ref<RecastPolygonMesh> polygon_mesh{nullptr};
   Ref<DetourNavigationMesh> navigation_mesh{nullptr};
-  Ref<DetourCrowd> crowd{nullptr};
 };

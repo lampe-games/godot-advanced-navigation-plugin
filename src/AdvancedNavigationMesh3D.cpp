@@ -7,9 +7,6 @@
 #include <MeshInstance.hpp>
 #include <PlaneMesh.hpp>
 #include <SceneTree.hpp>
-#include <Viewport.hpp>
-
-#include "AdvancedNavigationServer3D.hpp"
 
 void AdvancedNavigationMesh3D::_register_methods()
 {
@@ -218,7 +215,6 @@ void AdvancedNavigationMesh3D::_ready()
 {
   if (navigation_mesh.is_valid())
   {
-    create_crowd();
     auto was_deserialized = polygon_mesh.is_null();
     if (was_deserialized)
     {
@@ -273,7 +269,6 @@ void AdvancedNavigationMesh3D::bake_from_input_geometry(godot::Ref<InputGeometry
   }
   polygon_mesh = a_polygon_mesh;
   navigation_mesh = a_navigation_mesh;
-  create_crowd();
   if (debug_mesh_instance != nullptr)
   {
     update_debug_mesh_instance(get_debug_mesh());
@@ -305,31 +300,9 @@ PoolVector3Array AdvancedNavigationMesh3D::get_simple_path(
   return result;
 }
 
-Ref<DetourCrowd> AdvancedNavigationMesh3D::get_crowd()
+Ref<DetourNavigationMesh> AdvancedNavigationMesh3D::get_navigation_mesh()
 {
-  return crowd;
-}
-
-void AdvancedNavigationMesh3D::create_crowd()
-{
-  // TODO: try removing old crowd (deregister from server)
-  // TODO: calculate crowd config:
-  auto detour_crowd_config = Ref<DetourCrowdConfig>(DetourCrowdConfig::_new());
-  auto a_crowd = navigation_mesh->create_crowd(detour_crowd_config);
-  if (a_crowd.is_null())
-  {
-    ERR_PRINT("Failed creating 'DetourCrowd'");
-    return;
-  }
-  crowd = a_crowd;
-  auto* server =
-      get_tree()->get_root()->get_node<AdvancedNavigationServer3D>("AdvancedNavigationServer3D");
-  if (server == nullptr)
-  {
-    ERR_PRINT("Could not register crowd, 'AdvancedNavigationServer3D' is missing");
-    return;
-  }
-  server->register_detour_crowd(crowd);
+  return navigation_mesh;
 }
 
 void AdvancedNavigationMesh3D::create_debug_mesh_instance()

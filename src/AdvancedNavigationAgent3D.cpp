@@ -6,13 +6,15 @@ void AdvancedNavigationAgent3D::_register_methods()
 {
   // methods
   register_method("_ready", &AdvancedNavigationAgent3D::_ready);
-  register_method("set_navigation_mesh", &AdvancedNavigationAgent3D::set_navigation_mesh);
+  register_method("set_navigation_crowd", &AdvancedNavigationAgent3D::set_navigation_crowd);
   register_method("set_position", &AdvancedNavigationAgent3D::set_position);
   register_method("set_target", &AdvancedNavigationAgent3D::set_target);
   register_method("get_position", &AdvancedNavigationAgent3D::get_position);
   register_method("get_target", &AdvancedNavigationAgent3D::get_target);
   register_method("on_new_position", &AdvancedNavigationAgent3D::on_new_position);
   register_method("on_new_velocity", &AdvancedNavigationAgent3D::on_new_velocity);
+  register_method(
+      "on_navigation_crowd_changed", &AdvancedNavigationAgent3D::on_navigation_crowd_changed);
 
   // properties
   register_property<AdvancedNavigationAgent3D, Vector3>(
@@ -74,17 +76,17 @@ void AdvancedNavigationAgent3D::_ready()
   // TODO: navi auto-discovery (along parents)
 }
 
-void AdvancedNavigationAgent3D::set_navigation_mesh(
-    AdvancedNavigationMesh3D* a_navigation_mesh_node)
+void AdvancedNavigationAgent3D::set_navigation_crowd(
+    AdvancedNavigationCrowd3D* a_navigation_crowd_node)
 {
-  if (navigation_mesh_node != nullptr)
+  if (navigation_crowd_node != nullptr)
   {
-    navigation_mesh_node->disconnect("baked", this, "on_navigation_mesh_baked");
+    navigation_crowd_node->disconnect("changed", this, "on_navigation_crowd_changed");
   }
-  navigation_mesh_node = a_navigation_mesh_node;
-  if (navigation_mesh_node != nullptr)
+  navigation_crowd_node = a_navigation_crowd_node;
+  if (navigation_crowd_node != nullptr)
   {
-    navigation_mesh_node->connect("baked", this, "on_navigation_mesh_baked");
+    navigation_crowd_node->connect("changed", this, "on_navigation_crowd_changed");
     try_fetching_crowd();
     try_creating_agent();
   }
@@ -140,7 +142,7 @@ godot::Vector3 AdvancedNavigationAgent3D::get_target()
 
 void AdvancedNavigationAgent3D::try_fetching_crowd()
 {
-  Ref<DetourCrowd> a_crowd = navigation_mesh_node->get_crowd();
+  Ref<DetourCrowd> a_crowd = navigation_crowd_node->get_crowd();
   if (a_crowd.is_null() or a_crowd == crowd)
   {
     return;
@@ -190,7 +192,7 @@ Ref<DetourCrowdAgentConfig> AdvancedNavigationAgent3D::create_detour_crowd_agent
   return config;
 }
 
-void AdvancedNavigationAgent3D::on_navigation_mesh_baked()
+void AdvancedNavigationAgent3D::on_navigation_crowd_changed()
 {
   try_fetching_crowd();
   try_creating_agent();

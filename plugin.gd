@@ -20,6 +20,12 @@ func _enter_tree():
 		get_editor_interface().get_base_control().get_icon("Navigation", "EditorIcons")
 	)
 	add_custom_type(
+		"AdvancedNavigationCrowd3D",
+		"Node",
+		preload("res://addons/godot-advanced-navigation-plugin/nodes/AdvancedNavigationCrowd3D.gdns"),
+		get_editor_interface().get_base_control().get_icon("Navigation", "EditorIcons")
+	)
+	add_custom_type(
 		"AdvancedNavigationAgent3D",
 		"Node",
 		preload("res://addons/godot-advanced-navigation-plugin/nodes/AdvancedNavigationAgent3D.gdns"),

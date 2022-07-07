@@ -1,4 +1,5 @@
 #include "AdvancedNavigationAgent3D.hpp"
+#include "AdvancedNavigationCrowd3D.hpp"
 #include "AdvancedNavigationMesh3D.hpp"
 #include "AdvancedNavigationServer3D.hpp"
 #include "DetourCrowd.hpp"
@@ -21,8 +22,9 @@ extern "C" void GDN_EXPORT godot_nativescript_init(void* handle)
 {
   godot::Godot::nativescript_init(handle);
   // nodes:
-  godot::register_tool_class<AdvancedNavigationMesh3D>();
   godot::register_tool_class<AdvancedNavigationServer3D>();
+  godot::register_tool_class<AdvancedNavigationMesh3D>();
+  godot::register_class<AdvancedNavigationCrowd3D>();
   godot::register_class<AdvancedNavigationAgent3D>();
   // resources:
   godot::register_tool_class<InputGeometry>();

@@ -3,7 +3,7 @@
 #include <Godot.hpp>
 #include <Node.hpp>
 
-#include "AdvancedNavigationMesh3D.hpp"
+#include "AdvancedNavigationCrowd3D.hpp"
 #include "DetourCrowdAgent.hpp"
 
 class AdvancedNavigationAgent3D : public godot::Node
@@ -19,7 +19,7 @@ class AdvancedNavigationAgent3D : public godot::Node
   void _init() {}
   void _ready();
 
-  void set_navigation_mesh(AdvancedNavigationMesh3D*);
+  void set_navigation_crowd(AdvancedNavigationCrowd3D*);
   void set_position(godot::Vector3);
   void set_target(godot::Vector3);
 
@@ -32,7 +32,7 @@ class AdvancedNavigationAgent3D : public godot::Node
 
   godot::Ref<DetourCrowdAgentConfig> create_detour_crowd_agent_config() const;
 
-  void on_navigation_mesh_baked();
+  void on_navigation_crowd_changed();
   void on_new_position(godot::Vector3);
   void on_new_velocity(godot::Vector3);
 
@@ -50,7 +50,7 @@ class AdvancedNavigationAgent3D : public godot::Node
  private:
   godot::Vector3 requested_position{godot::Vector3::INF};
   godot::Vector3 requested_target{godot::Vector3::INF};
-  AdvancedNavigationMesh3D* navigation_mesh_node{nullptr};
+  AdvancedNavigationCrowd3D* navigation_crowd_node{nullptr};
   Ref<DetourCrowd> crowd{nullptr};
   Ref<DetourCrowdAgent> agent{nullptr};
 };
