@@ -12,6 +12,14 @@ void AdvancedNavigationCrowd3D::_register_methods()
   register_method("set_navigation_mesh", &AdvancedNavigationCrowd3D::set_navigation_mesh);
   register_method("on_navigation_mesh_baked", &AdvancedNavigationCrowd3D::on_navigation_mesh_baked);
 
+  // properties
+  // TODO: make sure the agent resource is recreated each time we change properties
+  // TODO: add hints
+  godot::register_property<AdvancedNavigationCrowd3D, float>(
+      "max_agent_radius", &AdvancedNavigationCrowd3D::max_agent_radius, default_max_agent_radius);
+  godot::register_property<AdvancedNavigationCrowd3D, int>(
+      "max_agents", &AdvancedNavigationCrowd3D::max_agents, default_max_agents);
+
   // signals
   register_signal<AdvancedNavigationCrowd3D>("changed");
 }
@@ -70,9 +78,7 @@ void AdvancedNavigationCrowd3D::try_creating_crowd()
   {
     server->deregister_detour_crowd(crowd);
   }
-  // TODO: calculate crowd config:
-  auto detour_crowd_config = Ref<DetourCrowdConfig>(DetourCrowdConfig::_new());
-  auto a_crowd = a_navigation_mesh->create_crowd(detour_crowd_config);
+  auto a_crowd = a_navigation_mesh->create_crowd(create_detour_crowd_config());
   if (a_crowd.is_null())
   {
     ERR_PRINT("Failed creating 'DetourCrowd'");
@@ -81,6 +87,14 @@ void AdvancedNavigationCrowd3D::try_creating_crowd()
   crowd = a_crowd;
   server->register_detour_crowd(crowd);
   emit_signal("changed");
+}
+
+Ref<DetourCrowdConfig> AdvancedNavigationCrowd3D::create_detour_crowd_config()
+{
+  Ref<DetourCrowdConfig> detour_crowd_config(DetourCrowdConfig::_new());
+  detour_crowd_config->max_agent_radius = max_agent_radius;
+  detour_crowd_config->max_agents = max_agents;
+  return detour_crowd_config;
 }
 
 void AdvancedNavigationCrowd3D::on_navigation_mesh_baked()
