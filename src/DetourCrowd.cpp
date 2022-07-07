@@ -66,6 +66,11 @@ Ref<DetourCrowdAgent> DetourCrowd::create_agent(
     Vector3 position,
     Ref<DetourCrowdAgentConfig> config)
 {
+  if (is_full())
+  {
+    ERR_PRINT("Cannot create new agent - limit of 25 agents reached");
+    return nullptr;
+  }
   // TODO: return if uninitialized
   auto agent = Ref<DetourCrowdAgent>(DetourCrowdAgent::_new());
   if (agent->initialize(position, config, this))
@@ -80,6 +85,15 @@ void DetourCrowd::update(float seconds)
   // TODO: return if uninitialized
   detour_crowd->ref().update(seconds, nullptr);
   emit_signal("updated");
+}
+
+bool DetourCrowd::is_full()
+{
+  // TODO: return if uninitialized
+  auto agents_limit = detour_crowd->ref().getAgentCount();
+  dtCrowdAgent* active_agents_array[agents_limit];
+  auto active_agents = detour_crowd->ref().getActiveAgents(active_agents_array, agents_limit);
+  return active_agents == agents_limit;
 }
 
 Ref<DetourNavigationMesh> DetourCrowd::get_detour_navigation_mesh_ref()

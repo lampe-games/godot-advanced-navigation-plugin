@@ -29,6 +29,8 @@ class DetourCrowd : public godot::Resource
 
   void update(float seconds);
 
+  bool is_full();
+
   godot::Ref<DetourNavigationMesh> get_detour_navigation_mesh_ref();
   std::shared_ptr<detour::Crowd> get_detour_crowd();
 
