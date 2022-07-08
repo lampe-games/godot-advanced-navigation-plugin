@@ -48,6 +48,11 @@ class AdvancedNavigationAgent3D : public godot::Node
   float collision_query_range{DetourCrowdAgentConfig::default_collision_query_range}; // >0
   float path_optimization_range{DetourCrowdAgentConfig::default_path_optimization_range}; // >0
   float separation_weight{DetourCrowdAgentConfig::default_separation_weight}; // >=0
+  bool anticipate_turns{DetourCrowdAgentConfig::default_anticipate_turns};
+  bool obstacle_avoidance{DetourCrowdAgentConfig::default_obstacle_avoidance};
+  bool separation{DetourCrowdAgentConfig::default_separation};
+  bool optimize_path_visibility{DetourCrowdAgentConfig::default_optimize_path_visibility};
+  bool optimize_path_topology{DetourCrowdAgentConfig::default_optimize_path_topology};
 
  private:
   godot::Vector3 requested_position{godot::Vector3::INF};

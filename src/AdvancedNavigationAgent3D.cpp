@@ -64,6 +64,26 @@ void AdvancedNavigationAgent3D::_register_methods()
       "separation_weight",
       &AdvancedNavigationAgent3D::separation_weight,
       DetourCrowdAgentConfig::default_separation_weight);
+  godot::register_property<AdvancedNavigationAgent3D, bool>(
+      "flags/anticipate_turns",
+      &AdvancedNavigationAgent3D::anticipate_turns,
+      DetourCrowdAgentConfig::default_anticipate_turns);
+  godot::register_property<AdvancedNavigationAgent3D, bool>(
+      "flags/obstacle_avoidance",
+      &AdvancedNavigationAgent3D::obstacle_avoidance,
+      DetourCrowdAgentConfig::default_obstacle_avoidance);
+  godot::register_property<AdvancedNavigationAgent3D, bool>(
+      "flags/separation",
+      &AdvancedNavigationAgent3D::separation,
+      DetourCrowdAgentConfig::default_separation);
+  godot::register_property<AdvancedNavigationAgent3D, bool>(
+      "flags/optimize_path_visibility",
+      &AdvancedNavigationAgent3D::optimize_path_visibility,
+      DetourCrowdAgentConfig::default_optimize_path_visibility);
+  godot::register_property<AdvancedNavigationAgent3D, bool>(
+      "flags/optimize_path_topology",
+      &AdvancedNavigationAgent3D::optimize_path_topology,
+      DetourCrowdAgentConfig::default_optimize_path_topology);
 
   // signals
   register_signal<AdvancedNavigationAgent3D>(
@@ -191,6 +211,11 @@ Ref<DetourCrowdAgentConfig> AdvancedNavigationAgent3D::create_detour_crowd_agent
   config->collision_query_range = collision_query_range;
   config->path_optimization_range = path_optimization_range;
   config->separation_weight = separation_weight;
+  config->anticipate_turns = anticipate_turns;
+  config->obstacle_avoidance = obstacle_avoidance;
+  config->separation = separation;
+  config->optimize_path_visibility = optimize_path_visibility;
+  config->optimize_path_topology = optimize_path_topology;
   return config;
 }
 
