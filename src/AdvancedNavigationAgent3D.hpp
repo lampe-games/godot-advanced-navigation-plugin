@@ -11,6 +11,7 @@ class AdvancedNavigationAgent3D : public godot::Node
   GODOT_CLASS(AdvancedNavigationAgent3D, godot::Node);
 
  public:
+  static constexpr bool default_passive_movement{true};
   static constexpr float default_target_desired_distance{0.2};
 
  public:
@@ -37,6 +38,7 @@ class AdvancedNavigationAgent3D : public godot::Node
   void on_new_velocity(godot::Vector3);
 
  private:
+  bool passive_movement{default_passive_movement};
   float target_desired_distance{default_target_desired_distance};
   // config:
   float radius{DetourCrowdAgentConfig::default_radius}; // >=0, 0 not working, so more likely >0

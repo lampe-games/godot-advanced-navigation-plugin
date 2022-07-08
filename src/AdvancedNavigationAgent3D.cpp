@@ -34,6 +34,8 @@ void AdvancedNavigationAgent3D::_register_methods()
 
   // TODO: make sure the agent resource is recreated each time we change properties
   // TODO: add hints
+  godot::register_property<AdvancedNavigationAgent3D, bool>(
+      "passive_movement", &AdvancedNavigationAgent3D::passive_movement, default_passive_movement);
   godot::register_property<AdvancedNavigationAgent3D, float>(
       "target_desired_distance",
       &AdvancedNavigationAgent3D::target_desired_distance,
@@ -203,7 +205,14 @@ void AdvancedNavigationAgent3D::on_new_position(godot::Vector3 position)
   emit_signal("new_position", position);
   if (position.distance_to(get_target()) <= target_desired_distance)
   {
-    set_target(Vector3::INF);
+    if (passive_movement)
+    {
+      set_target(position);
+    }
+    else
+    {
+      set_target(Vector3::INF);
+    }
     emit_signal("target_reached");
   }
 }
