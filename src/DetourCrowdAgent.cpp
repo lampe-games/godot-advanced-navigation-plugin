@@ -68,7 +68,7 @@ bool DetourCrowdAgent::initialize(
               a_detour_navigation_mesh_ref->DEFAULT_SERACH_BOX_EXTENTS));
   aligned_position = aligned_position == Vector3::INF ? position : aligned_position;
   const float* position_raw = &aligned_position.coord[0];
-  dtCrowdAgentParams agent_params{}; // TODO: fill all
+  dtCrowdAgentParams agent_params{};
   agent_params.radius = config->radius;
   agent_params.height = config->height;
   agent_params.maxAcceleration = config->max_acceleration;
@@ -76,12 +76,13 @@ bool DetourCrowdAgent::initialize(
   agent_params.collisionQueryRange = config->collision_query_range;
   agent_params.pathOptimizationRange = config->path_optimization_range;
   agent_params.separationWeight = config->separation_weight;
-  agent_params.updateFlags = DT_CROWD_ANTICIPATE_TURNS | DT_CROWD_OBSTACLE_AVOIDANCE |
-      DT_CROWD_SEPARATION | DT_CROWD_OPTIMIZE_VIS | DT_CROWD_OPTIMIZE_TOPO;
-  // agent_params.updateFlags = DT_CROWD_ANTICIPATE_TURNS | DT_CROWD_OBSTACLE_AVOIDANCE |
-  //     DT_CROWD_ANTICIPATE_TURNS | DT_CROWD_OPTIMIZE_VIS | DT_CROWD_OPTIMIZE_TOPO;
-  // agent_params.obstacleAvoidanceType = 0;
-  // agent_params.queryFilterType = 1;
+  agent_params.updateFlags |= config->anticipate_turns ? DT_CROWD_ANTICIPATE_TURNS : 0;
+  agent_params.updateFlags |= config->obstacle_avoidance ? DT_CROWD_OBSTACLE_AVOIDANCE : 0;
+  agent_params.updateFlags |= config->separation ? DT_CROWD_SEPARATION : 0;
+  agent_params.updateFlags |= config->optimize_path_visibility ? DT_CROWD_OPTIMIZE_VIS : 0;
+  agent_params.updateFlags |= config->optimize_path_topology ? DT_CROWD_OPTIMIZE_TOPO : 0;
+  agent_params.obstacleAvoidanceType = 0; // default
+  agent_params.queryFilterType = 0; // default
   auto agent_id = a_detour_crowd->ref().addAgent(position_raw, &agent_params);
   if (agent_id < 0)
   {
