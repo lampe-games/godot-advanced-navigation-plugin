@@ -34,53 +34,53 @@ void AdvancedNavigationAgent3D::_register_methods()
 
   // TODO: make sure the agent resource is recreated each time we change properties
   // TODO: add hints
-  godot::register_property<AdvancedNavigationAgent3D, bool>(
+  register_property<AdvancedNavigationAgent3D, bool>(
       "passive_movement", &AdvancedNavigationAgent3D::passive_movement, default_passive_movement);
-  godot::register_property<AdvancedNavigationAgent3D, float>(
+  register_property<AdvancedNavigationAgent3D, float>(
       "target_desired_distance",
       &AdvancedNavigationAgent3D::target_desired_distance,
       default_target_desired_distance);
-  godot::register_property<AdvancedNavigationAgent3D, float>(
+  register_property<AdvancedNavigationAgent3D, float>(
       "radius", &AdvancedNavigationAgent3D::radius, DetourCrowdAgentConfig::default_radius);
-  godot::register_property<AdvancedNavigationAgent3D, float>(
+  register_property<AdvancedNavigationAgent3D, float>(
       "height", &AdvancedNavigationAgent3D::height, DetourCrowdAgentConfig::default_height);
-  godot::register_property<AdvancedNavigationAgent3D, float>(
+  register_property<AdvancedNavigationAgent3D, float>(
       "max_acceleration",
       &AdvancedNavigationAgent3D::max_acceleration,
       DetourCrowdAgentConfig::default_max_acceleration);
-  godot::register_property<AdvancedNavigationAgent3D, float>(
+  register_property<AdvancedNavigationAgent3D, float>(
       "max_speed",
       &AdvancedNavigationAgent3D::max_speed,
       DetourCrowdAgentConfig::default_max_speed);
-  godot::register_property<AdvancedNavigationAgent3D, float>(
+  register_property<AdvancedNavigationAgent3D, float>(
       "collision_query_range",
       &AdvancedNavigationAgent3D::collision_query_range,
       DetourCrowdAgentConfig::default_collision_query_range);
-  godot::register_property<AdvancedNavigationAgent3D, float>(
+  register_property<AdvancedNavigationAgent3D, float>(
       "path_optimization_range",
       &AdvancedNavigationAgent3D::path_optimization_range,
       DetourCrowdAgentConfig::default_path_optimization_range);
-  godot::register_property<AdvancedNavigationAgent3D, float>(
+  register_property<AdvancedNavigationAgent3D, float>(
       "separation_weight",
       &AdvancedNavigationAgent3D::separation_weight,
       DetourCrowdAgentConfig::default_separation_weight);
-  godot::register_property<AdvancedNavigationAgent3D, bool>(
+  register_property<AdvancedNavigationAgent3D, bool>(
       "flags/anticipate_turns",
       &AdvancedNavigationAgent3D::anticipate_turns,
       DetourCrowdAgentConfig::default_anticipate_turns);
-  godot::register_property<AdvancedNavigationAgent3D, bool>(
+  register_property<AdvancedNavigationAgent3D, bool>(
       "flags/obstacle_avoidance",
       &AdvancedNavigationAgent3D::obstacle_avoidance,
       DetourCrowdAgentConfig::default_obstacle_avoidance);
-  godot::register_property<AdvancedNavigationAgent3D, bool>(
+  register_property<AdvancedNavigationAgent3D, bool>(
       "flags/separation",
       &AdvancedNavigationAgent3D::separation,
       DetourCrowdAgentConfig::default_separation);
-  godot::register_property<AdvancedNavigationAgent3D, bool>(
+  register_property<AdvancedNavigationAgent3D, bool>(
       "flags/optimize_path_visibility",
       &AdvancedNavigationAgent3D::optimize_path_visibility,
       DetourCrowdAgentConfig::default_optimize_path_visibility);
-  godot::register_property<AdvancedNavigationAgent3D, bool>(
+  register_property<AdvancedNavigationAgent3D, bool>(
       "flags/optimize_path_topology",
       &AdvancedNavigationAgent3D::optimize_path_topology,
       DetourCrowdAgentConfig::default_optimize_path_topology);
@@ -114,7 +114,7 @@ void AdvancedNavigationAgent3D::set_navigation_crowd(
   }
 }
 
-void AdvancedNavigationAgent3D::set_position(godot::Vector3 a_position)
+void AdvancedNavigationAgent3D::set_position(Vector3 a_position)
 {
   if (a_position == Vector3::INF)
   {
@@ -132,7 +132,7 @@ void AdvancedNavigationAgent3D::set_position(godot::Vector3 a_position)
   try_creating_agent();
 }
 
-void AdvancedNavigationAgent3D::set_target(godot::Vector3 a_target)
+void AdvancedNavigationAgent3D::set_target(Vector3 a_target)
 {
   if (agent.is_valid())
   {
@@ -154,7 +154,7 @@ void AdvancedNavigationAgent3D::set_target(godot::Vector3 a_target)
   }
 }
 
-godot::Vector3 AdvancedNavigationAgent3D::get_position()
+Vector3 AdvancedNavigationAgent3D::get_position()
 {
   if (agent.is_valid())
   {
@@ -163,7 +163,7 @@ godot::Vector3 AdvancedNavigationAgent3D::get_position()
   return Vector3::INF;
 }
 
-godot::Vector3 AdvancedNavigationAgent3D::get_target()
+Vector3 AdvancedNavigationAgent3D::get_target()
 {
   if (agent.is_valid())
   {
@@ -240,7 +240,7 @@ void AdvancedNavigationAgent3D::on_navigation_crowd_changed()
   try_creating_agent();
 }
 
-void AdvancedNavigationAgent3D::on_new_position(godot::Vector3 position)
+void AdvancedNavigationAgent3D::on_new_position(Vector3 position)
 {
   emit_signal("new_position", position);
   auto target = get_target();
@@ -259,7 +259,7 @@ void AdvancedNavigationAgent3D::on_new_position(godot::Vector3 position)
   }
 }
 
-void AdvancedNavigationAgent3D::on_new_velocity(godot::Vector3 velocity)
+void AdvancedNavigationAgent3D::on_new_velocity(Vector3 velocity)
 {
   emit_signal("new_velocity", velocity);
 }
