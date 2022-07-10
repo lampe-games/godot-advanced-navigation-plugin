@@ -1,5 +1,6 @@
 #include "AdvancedNavigationCrowd3D.hpp"
 
+#include <Engine.hpp>
 #include <SceneTree.hpp>
 #include <Viewport.hpp>
 
@@ -14,18 +15,35 @@ void AdvancedNavigationCrowd3D::_register_methods()
 
   // properties
   // TODO: make sure the agent resource is recreated each time we change properties
-  // TODO: add hints
-  godot::register_property<AdvancedNavigationCrowd3D, float>(
-      "max_agent_radius", &AdvancedNavigationCrowd3D::max_agent_radius, default_max_agent_radius);
-  godot::register_property<AdvancedNavigationCrowd3D, int>(
-      "max_agents", &AdvancedNavigationCrowd3D::max_agents, default_max_agents);
+  register_property<AdvancedNavigationCrowd3D, int>(
+      "backend",
+      &AdvancedNavigationCrowd3D::backend,
+      default_backend,
+      GODOT_METHOD_RPC_MODE_DISABLED,
+      GODOT_PROPERTY_USAGE_DEFAULT,
+      GODOT_PROPERTY_HINT_ENUM,
+      "DetourCrowd");
+  register_property<AdvancedNavigationCrowd3D, Ref<Resource>>(
+      "parameters", &AdvancedNavigationCrowd3D::parameters, Ref<Resource>());
 
   // signals
   register_signal<AdvancedNavigationCrowd3D>("changed");
 }
 
+void AdvancedNavigationCrowd3D::_init()
+{
+  if (parameters.is_null())
+  {
+    parameters = Ref<DetourCrowdConfig>(DetourCrowdConfig::_new());
+  }
+}
+
 void AdvancedNavigationCrowd3D::_ready()
 {
+  if (Engine::get_singleton()->is_editor_hint())
+  {
+    return;
+  }
   // TODO: iterate all parents
   AdvancedNavigationMesh3D* navigation_mesh_node =
       Object::cast_to<AdvancedNavigationMesh3D>(get_parent());
@@ -91,10 +109,13 @@ void AdvancedNavigationCrowd3D::try_creating_crowd()
 
 Ref<DetourCrowdConfig> AdvancedNavigationCrowd3D::create_detour_crowd_config()
 {
-  Ref<DetourCrowdConfig> detour_crowd_config(DetourCrowdConfig::_new());
-  detour_crowd_config->max_agent_radius = max_agent_radius;
-  detour_crowd_config->max_agents = max_agents;
-  return detour_crowd_config;
+  Ref<DetourCrowdConfig> config(parameters);
+  if (config.is_valid())
+  {
+    return config;
+  }
+  WARN_PRINT("'parameters' is not 'DetourCrowdConfig', default used instead");
+  return DetourCrowdConfig::_new();
 }
 
 void AdvancedNavigationCrowd3D::on_navigation_mesh_baked()

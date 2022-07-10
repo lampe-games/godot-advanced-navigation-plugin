@@ -203,6 +203,7 @@ Ref<DetourCrowdAgentConfig> AdvancedNavigationAgent3D::create_detour_crowd_agent
   {
     return config;
   }
+  WARN_PRINT("'parameters' is not 'DetourCrowdAgentConfig', default used instead");
   return DetourCrowdAgentConfig::_new();
 }
 

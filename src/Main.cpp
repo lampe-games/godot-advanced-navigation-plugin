@@ -24,7 +24,7 @@ extern "C" void GDN_EXPORT godot_nativescript_init(void* handle)
   // nodes:
   godot::register_tool_class<AdvancedNavigationServer3D>();
   godot::register_tool_class<AdvancedNavigationMesh3D>();
-  godot::register_class<AdvancedNavigationCrowd3D>();
+  godot::register_tool_class<AdvancedNavigationCrowd3D>();
   godot::register_tool_class<AdvancedNavigationAgent3D>();
   // resources:
   godot::register_tool_class<InputGeometry>();
