@@ -57,6 +57,7 @@ class AdvancedNavigationAgent3D : public godot::Node
  private:
   godot::Vector3 requested_position{godot::Vector3::INF};
   godot::Vector3 requested_target{godot::Vector3::INF};
+  godot::Vector3 last_reached_target{godot::Vector3::INF};
   AdvancedNavigationCrowd3D* navigation_crowd_node{nullptr};
   Ref<DetourCrowd> crowd{nullptr};
   Ref<DetourCrowdAgent> agent{nullptr};

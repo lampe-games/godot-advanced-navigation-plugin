@@ -136,7 +136,17 @@ void AdvancedNavigationAgent3D::set_target(godot::Vector3 a_target)
 {
   if (agent.is_valid())
   {
-    agent->set_target(a_target);
+    if (passive_movement and a_target == Vector3::INF)
+    {
+      auto position = get_position();
+      agent->set_target(position);
+      last_reached_target = position;
+    }
+    else
+    {
+      agent->set_target(a_target);
+      last_reached_target = Vector3::INF;
+    }
   }
   else
   {
@@ -184,6 +194,7 @@ void AdvancedNavigationAgent3D::try_creating_agent()
   {
     return;
   }
+  auto a_requested_position = requested_position;
   auto a_agent = crowd->create_agent(requested_position, create_detour_crowd_agent_config());
   requested_position = Vector3::INF;
   if (a_agent.is_null())
@@ -196,6 +207,10 @@ void AdvancedNavigationAgent3D::try_creating_agent()
   {
     agent->set_target(requested_target);
     requested_target = Vector3::INF;
+  }
+  else if (passive_movement)
+  {
+    agent->set_target(a_requested_position);
   }
   agent->connect("new_position", this, "on_new_position");
   agent->connect("new_velocity", this, "on_new_velocity");
@@ -228,17 +243,19 @@ void AdvancedNavigationAgent3D::on_navigation_crowd_changed()
 void AdvancedNavigationAgent3D::on_new_position(godot::Vector3 position)
 {
   emit_signal("new_position", position);
-  if (position.distance_to(get_target()) <= target_desired_distance)
+  auto target = get_target();
+  if (position.distance_to(target) <= target_desired_distance)
   {
-    if (passive_movement)
-    {
-      set_target(position);
-    }
-    else
+    if (not passive_movement)
     {
       set_target(Vector3::INF);
+      emit_signal("target_reached");
     }
-    emit_signal("target_reached");
+    else if (target != last_reached_target)
+    {
+      last_reached_target = target;
+      emit_signal("target_reached");
+    }
   }
 }
 
