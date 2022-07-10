@@ -1,5 +1,7 @@
 #include "AdvancedNavigationAgent3D.hpp"
 
+#include <Engine.hpp>
+
 using namespace godot;
 
 void AdvancedNavigationAgent3D::_register_methods()
@@ -40,50 +42,16 @@ void AdvancedNavigationAgent3D::_register_methods()
       "target_desired_distance",
       &AdvancedNavigationAgent3D::target_desired_distance,
       default_target_desired_distance);
-  register_property<AdvancedNavigationAgent3D, float>(
-      "radius", &AdvancedNavigationAgent3D::radius, DetourCrowdAgentConfig::default_radius);
-  register_property<AdvancedNavigationAgent3D, float>(
-      "height", &AdvancedNavigationAgent3D::height, DetourCrowdAgentConfig::default_height);
-  register_property<AdvancedNavigationAgent3D, float>(
-      "max_acceleration",
-      &AdvancedNavigationAgent3D::max_acceleration,
-      DetourCrowdAgentConfig::default_max_acceleration);
-  register_property<AdvancedNavigationAgent3D, float>(
-      "max_speed",
-      &AdvancedNavigationAgent3D::max_speed,
-      DetourCrowdAgentConfig::default_max_speed);
-  register_property<AdvancedNavigationAgent3D, float>(
-      "collision_query_range",
-      &AdvancedNavigationAgent3D::collision_query_range,
-      DetourCrowdAgentConfig::default_collision_query_range);
-  register_property<AdvancedNavigationAgent3D, float>(
-      "path_optimization_range",
-      &AdvancedNavigationAgent3D::path_optimization_range,
-      DetourCrowdAgentConfig::default_path_optimization_range);
-  register_property<AdvancedNavigationAgent3D, float>(
-      "separation_weight",
-      &AdvancedNavigationAgent3D::separation_weight,
-      DetourCrowdAgentConfig::default_separation_weight);
-  register_property<AdvancedNavigationAgent3D, bool>(
-      "flags/anticipate_turns",
-      &AdvancedNavigationAgent3D::anticipate_turns,
-      DetourCrowdAgentConfig::default_anticipate_turns);
-  register_property<AdvancedNavigationAgent3D, bool>(
-      "flags/obstacle_avoidance",
-      &AdvancedNavigationAgent3D::obstacle_avoidance,
-      DetourCrowdAgentConfig::default_obstacle_avoidance);
-  register_property<AdvancedNavigationAgent3D, bool>(
-      "flags/separation",
-      &AdvancedNavigationAgent3D::separation,
-      DetourCrowdAgentConfig::default_separation);
-  register_property<AdvancedNavigationAgent3D, bool>(
-      "flags/optimize_path_visibility",
-      &AdvancedNavigationAgent3D::optimize_path_visibility,
-      DetourCrowdAgentConfig::default_optimize_path_visibility);
-  register_property<AdvancedNavigationAgent3D, bool>(
-      "flags/optimize_path_topology",
-      &AdvancedNavigationAgent3D::optimize_path_topology,
-      DetourCrowdAgentConfig::default_optimize_path_topology);
+  register_property<AdvancedNavigationAgent3D, int>(
+      "backend",
+      &AdvancedNavigationAgent3D::backend,
+      default_backend,
+      GODOT_METHOD_RPC_MODE_DISABLED,
+      GODOT_PROPERTY_USAGE_DEFAULT,
+      GODOT_PROPERTY_HINT_ENUM,
+      "DetourCrowd");
+  register_property<AdvancedNavigationAgent3D, Ref<Resource>>(
+      "parameters", &AdvancedNavigationAgent3D::parameters, Ref<Resource>());
 
   // signals
   register_signal<AdvancedNavigationAgent3D>(
@@ -93,8 +61,20 @@ void AdvancedNavigationAgent3D::_register_methods()
   register_signal<AdvancedNavigationAgent3D>("target_reached");
 }
 
+void AdvancedNavigationAgent3D::_init()
+{
+  if (parameters.is_null())
+  {
+    parameters = Ref<DetourCrowdAgentConfig>(DetourCrowdAgentConfig::_new());
+  }
+}
+
 void AdvancedNavigationAgent3D::_ready()
 {
+  if (Engine::get_singleton()->is_editor_hint())
+  {
+    return;
+  }
   // TODO: navi auto-discovery (along parents)
 }
 
@@ -218,20 +198,12 @@ void AdvancedNavigationAgent3D::try_creating_agent()
 
 Ref<DetourCrowdAgentConfig> AdvancedNavigationAgent3D::create_detour_crowd_agent_config() const
 {
-  Ref<DetourCrowdAgentConfig> config(DetourCrowdAgentConfig::_new());
-  config->radius = radius;
-  config->height = height;
-  config->max_acceleration = max_acceleration;
-  config->max_speed = max_speed;
-  config->collision_query_range = collision_query_range;
-  config->path_optimization_range = path_optimization_range;
-  config->separation_weight = separation_weight;
-  config->anticipate_turns = anticipate_turns;
-  config->obstacle_avoidance = obstacle_avoidance;
-  config->separation = separation;
-  config->optimize_path_visibility = optimize_path_visibility;
-  config->optimize_path_topology = optimize_path_topology;
-  return config;
+  Ref<DetourCrowdAgentConfig> config(parameters);
+  if (config.is_valid())
+  {
+    return config;
+  }
+  return DetourCrowdAgentConfig::_new();
 }
 
 void AdvancedNavigationAgent3D::on_navigation_crowd_changed()

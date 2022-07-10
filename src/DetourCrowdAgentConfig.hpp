@@ -14,12 +14,12 @@ class DetourCrowdAgentConfig : public godot::Resource
   static constexpr float default_height{2.0};
   static constexpr float default_max_acceleration{0.6};
   static constexpr float default_max_speed{1.2};
-  static constexpr float default_collision_query_range{default_radius * 8};
-  static constexpr float default_path_optimization_range{default_radius * 30};
-  static constexpr float default_separation_weight{5.0};
+  static constexpr float default_collision_query_range{default_radius * 8.0};
+  static constexpr float default_path_optimization_range{default_radius * 30.0};
+  static constexpr float default_separation_weight{0.1};
   static constexpr bool default_anticipate_turns{true};
   static constexpr bool default_obstacle_avoidance{true};
-  static constexpr bool default_separation{true};
+  static constexpr bool default_separation{false};
   static constexpr bool default_optimize_path_visibility{true};
   static constexpr bool default_optimize_path_topology{true};
 
@@ -34,34 +34,32 @@ class DetourCrowdAgentConfig : public godot::Resource
         "max_acceleration", &DetourCrowdAgentConfig::max_acceleration, default_max_acceleration);
     godot::register_property<DetourCrowdAgentConfig, float>(
         "max_speed", &DetourCrowdAgentConfig::max_speed, default_max_speed);
+    godot::register_property<DetourCrowdAgentConfig, bool>(
+        "anticipate_turns", &DetourCrowdAgentConfig::anticipate_turns, default_anticipate_turns);
+    godot::register_property<DetourCrowdAgentConfig, bool>(
+        "obstacle_avoidance",
+        &DetourCrowdAgentConfig::obstacle_avoidance,
+        default_obstacle_avoidance);
     godot::register_property<DetourCrowdAgentConfig, float>(
         "collision_query_range",
         &DetourCrowdAgentConfig::collision_query_range,
         default_collision_query_range);
+    godot::register_property<DetourCrowdAgentConfig, bool>(
+        "optimize_path_visibility",
+        &DetourCrowdAgentConfig::optimize_path_visibility,
+        default_optimize_path_visibility);
+    godot::register_property<DetourCrowdAgentConfig, bool>(
+        "optimize_path_topology",
+        &DetourCrowdAgentConfig::optimize_path_topology,
+        default_optimize_path_topology);
     godot::register_property<DetourCrowdAgentConfig, float>(
         "path_optimization_range",
         &DetourCrowdAgentConfig::path_optimization_range,
         default_path_optimization_range);
+    godot::register_property<DetourCrowdAgentConfig, bool>(
+        "separation", &DetourCrowdAgentConfig::separation, default_separation);
     godot::register_property<DetourCrowdAgentConfig, float>(
         "separation_weight", &DetourCrowdAgentConfig::separation_weight, default_separation_weight);
-    godot::register_property<DetourCrowdAgentConfig, bool>(
-        "flags/anticipate_turns",
-        &DetourCrowdAgentConfig::anticipate_turns,
-        default_anticipate_turns);
-    godot::register_property<DetourCrowdAgentConfig, bool>(
-        "flags/obstacle_avoidance",
-        &DetourCrowdAgentConfig::obstacle_avoidance,
-        default_obstacle_avoidance);
-    godot::register_property<DetourCrowdAgentConfig, bool>(
-        "flags/separation", &DetourCrowdAgentConfig::separation, default_separation);
-    godot::register_property<DetourCrowdAgentConfig, bool>(
-        "flags/optimize_path_visibility",
-        &DetourCrowdAgentConfig::optimize_path_visibility,
-        default_optimize_path_visibility);
-    godot::register_property<DetourCrowdAgentConfig, bool>(
-        "flags/optimize_path_topology",
-        &DetourCrowdAgentConfig::optimize_path_topology,
-        default_optimize_path_topology);
   }
 
  public:
