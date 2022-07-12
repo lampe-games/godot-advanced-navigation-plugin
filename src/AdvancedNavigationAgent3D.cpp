@@ -226,7 +226,8 @@ void AdvancedNavigationAgent3D::on_new_position(Vector3 position)
     }
     else if (target != last_reached_target)
     {
-      last_reached_target = target;
+      set_target(position);
+      last_reached_target = get_target();
       emit_signal("target_reached");
     }
   }
