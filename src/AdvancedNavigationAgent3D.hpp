@@ -24,9 +24,11 @@ class AdvancedNavigationAgent3D : public godot::Node
   void set_navigation_crowd(AdvancedNavigationCrowd3D*);
   void set_position(godot::Vector3);
   void set_target(godot::Vector3);
+  void set_passive_movement(bool);
 
   godot::Vector3 get_position();
   godot::Vector3 get_target();
+  bool get_passive_movement();
 
  private:
   void try_fetching_crowd();

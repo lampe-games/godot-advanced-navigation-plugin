@@ -37,7 +37,10 @@ void AdvancedNavigationAgent3D::_register_methods()
   // TODO: make sure the agent resource is recreated each time we change properties
   // TODO: add hints
   register_property<AdvancedNavigationAgent3D, bool>(
-      "passive_movement", &AdvancedNavigationAgent3D::passive_movement, default_passive_movement);
+      "passive_movement",
+      &AdvancedNavigationAgent3D::set_passive_movement,
+      &AdvancedNavigationAgent3D::get_passive_movement,
+      default_passive_movement);
   register_property<AdvancedNavigationAgent3D, float>(
       "target_desired_distance",
       &AdvancedNavigationAgent3D::target_desired_distance,
@@ -134,6 +137,26 @@ void AdvancedNavigationAgent3D::set_target(Vector3 a_target)
   }
 }
 
+void AdvancedNavigationAgent3D::set_passive_movement(bool a_passive_movement)
+{
+  if (a_passive_movement == passive_movement)
+  {
+    return;
+  }
+  passive_movement = a_passive_movement;
+  if (agent.is_valid())
+  {
+    if (passive_movement and get_target() == Vector3::INF)
+    {
+      set_target(get_position());
+    }
+    else if (not passive_movement and get_target() != Vector3::INF)
+    {
+      set_target(Vector3::INF);
+    }
+  }
+}
+
 Vector3 AdvancedNavigationAgent3D::get_position()
 {
   if (agent.is_valid())
@@ -150,6 +173,11 @@ Vector3 AdvancedNavigationAgent3D::get_target()
     return agent->get_target();
   }
   return Vector3::INF;
+}
+
+bool AdvancedNavigationAgent3D::get_passive_movement()
+{
+  return passive_movement;
 }
 
 void AdvancedNavigationAgent3D::try_fetching_crowd()
