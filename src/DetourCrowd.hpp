@@ -38,4 +38,5 @@ class DetourCrowd : public godot::Resource
   godot::Ref<DetourNavigationMesh> detour_navigation_mesh_ref{nullptr};
   std::shared_ptr<detour::Crowd> detour_crowd{nullptr};
   std::shared_ptr<detour::NavMesh> detour_nav_mesh{nullptr};
+  float max_agent_radius{0.0};
 };

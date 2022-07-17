@@ -58,6 +58,7 @@ bool DetourCrowd::initialize(
   detour_navigation_mesh_ref = a_detour_navigation_mesh_ref;
   detour_crowd = std::move(a_detour_crowd);
   detour_nav_mesh = std::move(a_detour_nav_mesh);
+  max_agent_radius = config->max_agent_radius;
 
   return true;
 }
@@ -66,12 +67,23 @@ Ref<DetourCrowdAgent> DetourCrowd::create_agent(
     Vector3 position,
     Ref<DetourCrowdAgentConfig> config)
 {
+  // TODO: return if uninitialized
   if (is_full())
   {
     ERR_PRINT("Cannot create new agent - limit of 25 agents reached");
     return nullptr;
   }
-  // TODO: return if uninitialized
+  if (config.is_null())
+  {
+    ERR_PRINT("Cannot create new agent - config is null");
+    return nullptr;
+  }
+  if (config->radius > max_agent_radius)
+  {
+    ERR_PRINT(String("Cannot create new agent - agent's radius ({0}) exceeds crowd's limit ({1})")
+                  .format(Array::make(config->radius, max_agent_radius)));
+    return nullptr;
+  }
   auto agent = Ref<DetourCrowdAgent>(DetourCrowdAgent::_new());
   if (agent->initialize(position, config, this))
   {
