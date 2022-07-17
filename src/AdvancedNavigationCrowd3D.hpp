@@ -17,6 +17,7 @@ class AdvancedNavigationCrowd3D : public godot::Node
 
   void _init();
   void _ready();
+  void _physics_process(float delta);
 
   void set_navigation_mesh(AdvancedNavigationMesh3D*);
 

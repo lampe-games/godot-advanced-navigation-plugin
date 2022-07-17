@@ -1,15 +1,14 @@
 #include "AdvancedNavigationCrowd3D.hpp"
 
 #include <Engine.hpp>
-#include <SceneTree.hpp>
-#include <Viewport.hpp>
 
-#include "AdvancedNavigationServer3D.hpp"
+#include "DetourCrowd.hpp"
 
 void AdvancedNavigationCrowd3D::_register_methods()
 {
   // methods
   register_method("_ready", &AdvancedNavigationCrowd3D::_ready);
+  register_method("_physics_process", &AdvancedNavigationCrowd3D::_physics_process);
   register_method("set_navigation_mesh", &AdvancedNavigationCrowd3D::set_navigation_mesh);
   register_method("on_navigation_mesh_baked", &AdvancedNavigationCrowd3D::on_navigation_mesh_baked);
 
@@ -53,6 +52,14 @@ void AdvancedNavigationCrowd3D::_ready()
   }
 }
 
+void AdvancedNavigationCrowd3D::_physics_process(float delta)
+{
+  if (crowd.is_valid())
+  {
+    crowd->update(delta);
+  }
+}
+
 void AdvancedNavigationCrowd3D::set_navigation_mesh(
     AdvancedNavigationMesh3D* a_navigation_mesh_node)
 {
@@ -85,17 +92,6 @@ void AdvancedNavigationCrowd3D::try_creating_crowd()
   {
     return;
   }
-  auto* server =
-      get_tree()->get_root()->get_node<AdvancedNavigationServer3D>("AdvancedNavigationServer3D");
-  if (server == nullptr)
-  {
-    ERR_PRINT("Could not create crowd, 'AdvancedNavigationServer3D' is missing");
-    return;
-  }
-  if (crowd.is_valid())
-  {
-    server->deregister_detour_crowd(crowd);
-  }
   auto a_crowd = a_navigation_mesh->create_crowd(create_detour_crowd_config());
   if (a_crowd.is_null())
   {
@@ -103,7 +99,6 @@ void AdvancedNavigationCrowd3D::try_creating_crowd()
     return;
   }
   crowd = a_crowd;
-  server->register_detour_crowd(crowd);
   emit_signal("changed");
 }
 
