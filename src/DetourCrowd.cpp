@@ -84,6 +84,13 @@ Ref<DetourCrowdAgent> DetourCrowd::create_agent(
                   .format(Array::make(config->radius, max_agent_radius)));
     return nullptr;
   }
+  if (config->collision_query_range < config->radius + max_agent_radius)
+  {
+    WARN_PRINT(
+        String("Collision query range ({0}) is smaller than agent's radius ({1}) + max agent "
+               "radius ({2}) which means this agent may not collide with some agents")
+            .format(Array::make(config->collision_query_range, config->radius, max_agent_radius)));
+  }
   auto agent = Ref<DetourCrowdAgent>(DetourCrowdAgent::_new());
   if (agent->initialize(position, config, this))
   {
