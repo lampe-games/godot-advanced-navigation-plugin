@@ -18,6 +18,7 @@ void AdvancedNavigationMesh3D::_register_methods()
   register_method("bake_from_input_geometry", &AdvancedNavigationMesh3D::bake_from_input_geometry);
   register_method("clear", &AdvancedNavigationMesh3D::clear);
 
+  register_method("get_closest_point", &AdvancedNavigationMesh3D::get_closest_point);
   register_method("get_simple_path", &AdvancedNavigationMesh3D::get_simple_path);
 
   // signals
@@ -285,19 +286,27 @@ void AdvancedNavigationMesh3D::clear()
   }
 }
 
+Vector3 AdvancedNavigationMesh3D::get_closest_point(Vector3 to_point) const
+{
+  if (navigation_mesh.is_null())
+  {
+    ERR_PRINT("Navigation mesh is not baked yet");
+    return Vector3::INF;
+  }
+  return navigation_mesh->get_closest_point(to_point);
+}
+
 PoolVector3Array AdvancedNavigationMesh3D::get_simple_path(
     Vector3 begin,
     Vector3 end,
     bool simplified) const
 {
-  PoolVector3Array result;
   if (navigation_mesh.is_null())
   {
     ERR_PRINT("Navigation mesh is not baked yet");
-    return result;
+    return PoolVector3Array();
   }
   return navigation_mesh->get_simple_path(begin, end, simplified);
-  return result;
 }
 
 Ref<DetourNavigationMesh> AdvancedNavigationMesh3D::get_navigation_mesh()

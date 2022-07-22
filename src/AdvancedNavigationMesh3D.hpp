@@ -34,6 +34,7 @@ class AdvancedNavigationMesh3D : public Spatial
   void bake_from_input_geometry(godot::Ref<InputGeometry>);
   void clear();
 
+  godot::Vector3 get_closest_point(godot::Vector3 to_point) const;
   godot::PoolVector3Array get_simple_path(godot::Vector3 begin, godot::Vector3 end, bool simplified)
       const;
 
