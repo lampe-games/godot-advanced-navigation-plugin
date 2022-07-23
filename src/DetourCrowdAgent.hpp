@@ -26,11 +26,14 @@ class DetourCrowdAgent : public godot::Resource
       godot::Ref<DetourCrowdAgentConfig>,
       godot::Ref<DetourCrowd>);
 
+  void void_set_position(godot::Vector3 target);
+  bool set_position(godot::Vector3 target);
+  bool set_position_with_extents(godot::Vector3 target, godot::Vector3 search_box_half_extents);
   bool set_target(godot::Vector3 target);
   bool set_target_with_extents(godot::Vector3 target, godot::Vector3 search_box_half_extents);
 
-  godot::Vector3 get_target() const;
   godot::Vector3 get_position() const;
+  godot::Vector3 get_target() const;
   godot::Vector3 get_velocity() const;
   int get_state() const;
 

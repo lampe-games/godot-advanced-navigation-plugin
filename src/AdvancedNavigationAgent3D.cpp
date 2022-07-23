@@ -107,8 +107,8 @@ void AdvancedNavigationAgent3D::set_position(Vector3 a_position)
   }
   if (agent.is_valid())
   {
-    // TODO: if agent exists: recreate it
-    ERR_PRINT("Not implemented");
+    agent->set_position(a_position);
+    set_target(Vector3::INF);
     return;
   }
   requested_position = a_position;

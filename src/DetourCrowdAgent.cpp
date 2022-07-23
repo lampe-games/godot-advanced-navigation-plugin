@@ -25,7 +25,10 @@ void DetourCrowdAgent::_register_methods()
   register_method("on_crowd_updated", &DetourCrowdAgent::on_crowd_updated);
 
   register_property<DetourCrowdAgent, Vector3>(
-      "position", nullptr, &DetourCrowdAgent::get_position, Vector3::INF);
+      "position",
+      &DetourCrowdAgent::void_set_position,
+      &DetourCrowdAgent::get_position,
+      Vector3::INF);
   register_property<DetourCrowdAgent, Vector3>(
       "velocity", nullptr, &DetourCrowdAgent::get_velocity, Vector3::INF);
   register_property<DetourCrowdAgent, int>("state", nullptr, &DetourCrowdAgent::get_state, -1);
@@ -37,8 +40,8 @@ void DetourCrowdAgent::_register_methods()
 
 bool DetourCrowdAgent::initialize(
     Vector3 position,
-    godot::Ref<DetourCrowdAgentConfig> config,
-    godot::Ref<DetourCrowd> detour_crowd_ref)
+    Ref<DetourCrowdAgentConfig> config,
+    Ref<DetourCrowd> detour_crowd_ref)
 {
   if (detour_crowd_ref.is_null())
   {
@@ -100,7 +103,56 @@ bool DetourCrowdAgent::initialize(
   return true;
 }
 
-bool DetourCrowdAgent::set_target(godot::Vector3 target)
+void DetourCrowdAgent::void_set_position(Vector3 position)
+{
+  set_position(position);
+}
+
+bool DetourCrowdAgent::set_position(Vector3 position)
+{
+  return set_position_with_extents(
+      position,
+      Vector3(
+          detour_navigation_mesh_ref->DEFAULT_SERACH_BOX_EXTENTS,
+          detour_navigation_mesh_ref->DEFAULT_SERACH_BOX_EXTENTS,
+          detour_navigation_mesh_ref->DEFAULT_SERACH_BOX_EXTENTS));
+}
+
+bool DetourCrowdAgent::set_position_with_extents(Vector3 position, Vector3 search_box_half_extents)
+{
+  RETURN_IF_UNINITIALIZED(false);
+  if (position == Vector3::INF)
+  {
+    // TODO: remove agent from crowd
+    ERR_PRINT("Not implemented");
+    return false;
+  }
+  dtCrowdAgentParams agent_params = const_detour_crowd_agent->params;
+  detour_crowd->ref().removeAgent(detour_crowd_agent_id);
+  Vector3 aligned_position;
+  std::tie(aligned_position, std::ignore) =
+      detour_navigation_mesh_ref->get_closest_point_and_poly_with_extents_quiet(
+          position,
+          Vector3(
+              detour_navigation_mesh_ref->DEFAULT_SERACH_BOX_EXTENTS,
+              detour_navigation_mesh_ref->DEFAULT_SERACH_BOX_EXTENTS,
+              detour_navigation_mesh_ref->DEFAULT_SERACH_BOX_EXTENTS));
+  aligned_position = aligned_position == Vector3::INF ? position : aligned_position;
+  const float* position_raw = &aligned_position.coord[0];
+  auto agent_id = detour_crowd->ref().addAgent(position_raw, &agent_params);
+  if (agent_id < 0)
+  {
+    // TODO: invalidate whole agent
+    ERR_PRINT("Not implemented");
+    return false;
+  }
+  const_detour_crowd_agent = detour_crowd->ref().getAgent(agent_id);
+  detour_crowd_agent = detour_crowd->ref().getEditableAgent(agent_id);
+  detour_crowd_agent_id = agent_id;
+  return true;
+}
+
+bool DetourCrowdAgent::set_target(Vector3 target)
 {
   return set_target_with_extents(
       target,
