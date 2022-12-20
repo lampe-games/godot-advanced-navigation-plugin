@@ -12,9 +12,11 @@ class DetourCrowdAgent : public godot::Resource
  public:
   enum State
   {
-    INVALID = 0,
+    UNINITIALIZED = 0,
+    DISABLED,
+    INVALID,
     WALKING,
-    OFFMESH
+    OFFMESH,
   };
 
   static void _register_methods();
@@ -25,6 +27,9 @@ class DetourCrowdAgent : public godot::Resource
       godot::Vector3 position,
       godot::Ref<DetourCrowdAgentConfig>,
       godot::Ref<DetourCrowd>);
+
+  void enable();
+  void disable();
 
   void void_set_position(godot::Vector3 target);
   bool set_position(godot::Vector3 target);
@@ -37,6 +42,8 @@ class DetourCrowdAgent : public godot::Resource
   godot::Vector3 get_velocity() const;
   int get_state() const;
 
+  int get_state_uninitialized() const { return State::UNINITIALIZED; }
+  int get_state_disabled() const { return State::DISABLED; }
   int get_state_invalid() const { return State::INVALID; }
   int get_state_walking() const { return State::WALKING; }
   int get_state_offmesh() const { return State::OFFMESH; }
@@ -49,5 +56,6 @@ class DetourCrowdAgent : public godot::Resource
   std::shared_ptr<detour::Crowd> detour_crowd{nullptr};
   const dtCrowdAgent* const_detour_crowd_agent{nullptr};
   dtCrowdAgent* detour_crowd_agent{nullptr};
-  int detour_crowd_agent_id;
+  int detour_crowd_agent_id{};
+  bool enabled{true};
 };

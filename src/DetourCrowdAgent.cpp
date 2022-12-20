@@ -12,18 +12,14 @@ using namespace godot;
 void DetourCrowdAgent::_register_methods()
 {
   // methods
-  register_property<DetourCrowdAgent, int>(
-      "STATE_INVALID", nullptr, &DetourCrowdAgent::get_state_invalid, State::INVALID);
-  register_property<DetourCrowdAgent, int>(
-      "STATE_WALKING", nullptr, &DetourCrowdAgent::get_state_walking, State::WALKING);
-  register_property<DetourCrowdAgent, int>(
-      "STATE_OFFMESH", nullptr, &DetourCrowdAgent::get_state_offmesh, State::OFFMESH);
-
+  register_method("enable", &DetourCrowdAgent::enable);
+  register_method("disable", &DetourCrowdAgent::disable);
   register_method("set_target", &DetourCrowdAgent::set_target);
   register_method("set_target_with_extents", &DetourCrowdAgent::set_target_with_extents);
   register_method("get_target", &DetourCrowdAgent::get_target);
   register_method("on_crowd_updated", &DetourCrowdAgent::on_crowd_updated);
 
+  // properties
   register_property<DetourCrowdAgent, Vector3>(
       "position",
       &DetourCrowdAgent::void_set_position,
@@ -36,6 +32,21 @@ void DetourCrowdAgent::_register_methods()
   // signals
   register_signal<DetourCrowdAgent>("new_position", "position", GODOT_VARIANT_TYPE_VECTOR3);
   register_signal<DetourCrowdAgent>("new_velocity", "velocity", GODOT_VARIANT_TYPE_VECTOR3);
+
+  // enums
+  register_property<DetourCrowdAgent, int>(
+      "STATE_UNINITIALIZED",
+      nullptr,
+      &DetourCrowdAgent::get_state_uninitialized,
+      State::UNINITIALIZED);
+  register_property<DetourCrowdAgent, int>(
+      "STATE_DISABLED", nullptr, &DetourCrowdAgent::get_state_disabled, State::DISABLED);
+  register_property<DetourCrowdAgent, int>(
+      "STATE_INVALID", nullptr, &DetourCrowdAgent::get_state_invalid, State::INVALID);
+  register_property<DetourCrowdAgent, int>(
+      "STATE_WALKING", nullptr, &DetourCrowdAgent::get_state_walking, State::WALKING);
+  register_property<DetourCrowdAgent, int>(
+      "STATE_OFFMESH", nullptr, &DetourCrowdAgent::get_state_offmesh, State::OFFMESH);
 }
 
 bool DetourCrowdAgent::initialize(
@@ -103,6 +114,21 @@ bool DetourCrowdAgent::initialize(
   return true;
 }
 
+void DetourCrowdAgent::enable()
+{
+  RETURN_IF_UNINITIALIZED();
+}
+
+void DetourCrowdAgent::disable()
+{
+  RETURN_IF_UNINITIALIZED();
+  if (enabled)
+  {
+    enabled = false;
+    detour_crowd->ref().removeAgent(detour_crowd_agent_id);
+  }
+}
+
 void DetourCrowdAgent::void_set_position(Vector3 position)
 {
   set_position(position);
@@ -123,8 +149,7 @@ bool DetourCrowdAgent::set_position_with_extents(Vector3 position, Vector3 searc
   RETURN_IF_UNINITIALIZED(false);
   if (position == Vector3::INF)
   {
-    // TODO: remove agent from crowd
-    ERR_PRINT("Not implemented");
+    ERR_PRINT("Cannot set position to Vector3::INF");
     return false;
   }
   dtCrowdAgentParams agent_params = const_detour_crowd_agent->params;
@@ -211,8 +236,21 @@ Vector3 DetourCrowdAgent::get_velocity() const
 
 int DetourCrowdAgent::get_state() const
 {
-  RETURN_IF_UNINITIALIZED(-1);
-  return static_cast<int>(const_detour_crowd_agent->state);
+  RETURN_IF_UNINITIALIZED(State::UNINITIALIZED);
+  if (not enabled)
+    return State::DISABLED;
+  switch (const_detour_crowd_agent->state)
+  {
+    case DT_CROWDAGENT_STATE_INVALID:
+      return State::INVALID;
+    case DT_CROWDAGENT_STATE_WALKING:
+      return State::WALKING;
+    case DT_CROWDAGENT_STATE_OFFMESH:
+      return State::OFFMESH;
+    default:
+      ERR_PRINT("Unknown detour state");
+      return -1;
+  }
 }
 
 void DetourCrowdAgent::on_crowd_updated()

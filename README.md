@@ -93,16 +93,25 @@ Work in progress, not entirely stable right now.
 
 ### DetourCrowdAgent
 #### properties
- - `position`
- - `velocity`
- - `state`
+ - `position: Vector3`
+ - `velocity: Vector3`
+ - `state: enum`
 #### methods
- - `set_target`
- - `set_target_with_extents`
- - `get_target`
+ - `enable()`
+ - `disable()`
+ - `set_target(target: Vector3)`
+ - `set_target_with_extents(target: Vector3, search_box_half_extents: Vector3)`
+ - `get_target() -> Vector3`
 #### signals
- - `new_position`
- - `new_velocity`
+ - `new_position(new_position: Vector3)`
+ - `new_velocity(new_velocity: Vector3)`
+#### enumerations
+ - `State`
+   - `UNINITIALIZED`
+   - `DISABLED`
+   - `INVALID`
+   - `WALKING`
+   - `OFFMESH`
 
 # Design
 
