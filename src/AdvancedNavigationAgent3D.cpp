@@ -8,6 +8,8 @@ void AdvancedNavigationAgent3D::_register_methods()
 {
   // methods
   register_method("_ready", &AdvancedNavigationAgent3D::_ready);
+  register_method("enable", &AdvancedNavigationAgent3D::enable);
+  register_method("disable", &AdvancedNavigationAgent3D::disable);
   register_method("set_navigation_crowd", &AdvancedNavigationAgent3D::set_navigation_crowd);
   register_method("set_position", &AdvancedNavigationAgent3D::set_position);
   register_method("set_target", &AdvancedNavigationAgent3D::set_target);
@@ -79,6 +81,23 @@ void AdvancedNavigationAgent3D::_ready()
     return;
   }
   // TODO: navi auto-discovery (along parents)
+}
+
+bool AdvancedNavigationAgent3D::enable()
+{
+  if (agent.is_valid())
+  {
+    return agent->enable();
+  }
+  return false;
+}
+void AdvancedNavigationAgent3D::disable()
+{
+  if (agent.is_valid())
+  {
+    agent->disable();
+  }
+  // TODO: cache pending disable in case where agent is not valid yet
 }
 
 void AdvancedNavigationAgent3D::set_navigation_crowd(

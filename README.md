@@ -50,6 +50,8 @@ Work in progress, not entirely stable right now.
  - `backend`
  - `parameters`
 #### methods
+ - `enable -> bool`
+ - `disable`
  - `set_navigation_crowd`
  - `set_position`
  - `set_target`
