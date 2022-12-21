@@ -190,35 +190,32 @@ bool DetourCrowdAgent::set_position(Vector3 position)
 bool DetourCrowdAgent::set_position_with_extents(Vector3 position, Vector3 search_box_half_extents)
 {
   RETURN_IF_UNINITIALIZED(false);
-  RETURN_IF_DISABLED(false);
   if (position == Vector3::INF)
   {
     WARN_PRINT("Cannot set position to Vector3::INF");
     return false;
   }
-  dtCrowdAgentParams agent_params = detour_crowd_agent->cref.params;
-  detour_crowd->ref().removeAgent(detour_crowd_agent->id);
-  Vector3 aligned_position;
-  std::tie(aligned_position, std::ignore) =
-      detour_navigation_mesh_ref->get_closest_point_and_poly_with_extents_quiet(
-          position,
-          Vector3(
-              detour_navigation_mesh_ref->DEFAULT_SERACH_BOX_EXTENTS,
-              detour_navigation_mesh_ref->DEFAULT_SERACH_BOX_EXTENTS,
-              detour_navigation_mesh_ref->DEFAULT_SERACH_BOX_EXTENTS));
-  aligned_position = aligned_position == Vector3::INF ? position : aligned_position;
-  const float* position_raw = &aligned_position.coord[0];
-  auto agent_id = detour_crowd->ref().addAgent(position_raw, &agent_params);
-  if (agent_id < 0)
+  if (not is_enabled())
   {
-    // TODO: invalidate whole agent
-    ERR_PRINT("Not implemented");
+    Vector3 aligned_position;
+    std::tie(aligned_position, std::ignore) =
+        detour_navigation_mesh_ref->get_closest_point_and_poly_with_extents_quiet(
+            position,
+            Vector3(
+                detour_navigation_mesh_ref->DEFAULT_SERACH_BOX_EXTENTS,
+                detour_navigation_mesh_ref->DEFAULT_SERACH_BOX_EXTENTS,
+                detour_navigation_mesh_ref->DEFAULT_SERACH_BOX_EXTENTS));
+    aligned_position = aligned_position == Vector3::INF ? position : aligned_position;
+    pending_position.emplace(aligned_position);
+    return true;
+  }
+  disable();
+  set_position_with_extents(position, search_box_half_extents);
+  if (not enable())
+  {
+    ERR_PRINT("Could not re-enable agent after changing its position");
     return false;
   }
-  detour_crowd_agent.emplace(
-      agent_id,
-      *detour_crowd->ref().getAgent(agent_id),
-      *detour_crowd->ref().getEditableAgent(agent_id));
   return true;
 }
 

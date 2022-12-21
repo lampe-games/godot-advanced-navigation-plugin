@@ -60,7 +60,7 @@ class DetourCrowdAgent : public godot::Resource
   std::shared_ptr<detour::Crowd> detour_crowd{nullptr};
   std::optional<detour::CrowdAgent> detour_crowd_agent{};
   std::optional<godot::Vector3> pending_position{};
+  std::optional<dtCrowdAgentParams> pending_params{};
   std::optional<godot::Vector3> pending_target{};
   std::optional<dtPolyRef> pending_target_polygon{};
-  std::optional<dtCrowdAgentParams> pending_params{};
 };
