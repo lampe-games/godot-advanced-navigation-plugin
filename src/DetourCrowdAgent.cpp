@@ -75,6 +75,11 @@ bool DetourCrowdAgent::initialize(
     ERR_PRINT("'DetourCrowd' not initialized");
     return false;
   }
+  if (detour_crowd != nullptr)
+  {
+    ERR_PRINT("Already initialized");
+    return false;
+  }
 
   Vector3 aligned_position;
   auto a_detour_navigation_mesh_ref = detour_crowd_ref->get_detour_navigation_mesh_ref();
@@ -123,12 +128,46 @@ bool DetourCrowdAgent::initialize(
 bool DetourCrowdAgent::enable()
 {
   RETURN_IF_UNINITIALIZED(false);
+  if (is_enabled())
+  {
+    return false;
+  }
+
+  const float* position_raw = &pending_position->coord[0];
+  auto agent_id = detour_crowd->ref().addAgent(position_raw, &*pending_params);
+  if (agent_id < 0)
+  {
+    WARN_PRINT("Cannot enable agent");
+    return false;
+  }
+  detour_crowd_agent.emplace(
+      agent_id,
+      *detour_crowd->ref().getAgent(agent_id),
+      *detour_crowd->ref().getEditableAgent(agent_id));
+  pending_position.reset();
+  pending_params.reset();
+
+  if (pending_target.has_value())
+  {
+    detour_crowd->ref().requestMoveTarget(
+        detour_crowd_agent->id, *pending_target_polygon, &pending_target->coord[0]);
+  }
+
+  return true;
 }
 
 void DetourCrowdAgent::disable()
 {
   RETURN_IF_UNINITIALIZED();
   RETURN_IF_DISABLED();
+  pending_position.emplace(get_position());
+  pending_params.emplace(detour_crowd_agent->cref.params);
+  auto current_target = get_target();
+  if (current_target != Vector3::INF)
+  {
+    pending_target.emplace(current_target);
+    pending_target_polygon.emplace(detour_crowd_agent->cref.targetRef);
+  }
   detour_crowd->ref().removeAgent(detour_crowd_agent->id);
   detour_crowd_agent.reset();
 }
@@ -154,7 +193,7 @@ bool DetourCrowdAgent::set_position_with_extents(Vector3 position, Vector3 searc
   RETURN_IF_DISABLED(false);
   if (position == Vector3::INF)
   {
-    ERR_PRINT("Cannot set position to Vector3::INF");
+    WARN_PRINT("Cannot set position to Vector3::INF");
     return false;
   }
   dtCrowdAgentParams agent_params = detour_crowd_agent->cref.params;
@@ -240,7 +279,7 @@ Vector3 DetourCrowdAgent::get_velocity() const
 {
   RETURN_IF_UNINITIALIZED(Vector3::INF);
   RETURN_IF_DISABLED(Vector3::INF);
-  const float* velocity_raw = detour_crowd_agent->cref.vel; // TODO: check validity
+  const float* velocity_raw = detour_crowd_agent->cref.vel;
   return Vector3(velocity_raw[0], velocity_raw[1], velocity_raw[2]);
 }
 
