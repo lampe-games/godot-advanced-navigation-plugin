@@ -78,4 +78,22 @@ class Crowd
  private:
   dtCrowd* raw_ptr{nullptr};
 };
+
+struct CrowdAgent
+{
+  CrowdAgent(int a_id, const dtCrowdAgent& a_cref, dtCrowdAgent& a_ref)
+      : id{a_id}, cref{a_cref}, ref{a_ref}
+  {
+  }
+  CrowdAgent() = delete;
+
+  CrowdAgent& operator=(const CrowdAgent&) = delete;
+  CrowdAgent(const CrowdAgent&) = delete;
+  CrowdAgent& operator=(CrowdAgent&&) = delete;
+  CrowdAgent(CrowdAgent&&) = delete;
+
+  const int id;
+  const dtCrowdAgent& cref;
+  dtCrowdAgent& ref;
+};
 } // namespace detour

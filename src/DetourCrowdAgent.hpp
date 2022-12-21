@@ -1,5 +1,7 @@
 #pragma once
 
+#include <optional>
+
 #include <Godot.hpp>
 #include <Resource.hpp>
 
@@ -28,8 +30,9 @@ class DetourCrowdAgent : public godot::Resource
       godot::Ref<DetourCrowdAgentConfig>,
       godot::Ref<DetourCrowd>);
 
-  void enable();
+  bool enable();
   void disable();
+  bool is_enabled() const { return detour_crowd_agent.has_value(); }
 
   void void_set_position(godot::Vector3 target);
   bool set_position(godot::Vector3 target);
@@ -54,8 +57,5 @@ class DetourCrowdAgent : public godot::Resource
  private:
   godot::Ref<DetourNavigationMesh> detour_navigation_mesh_ref{nullptr};
   std::shared_ptr<detour::Crowd> detour_crowd{nullptr};
-  const dtCrowdAgent* const_detour_crowd_agent{nullptr};
-  dtCrowdAgent* detour_crowd_agent{nullptr};
-  int detour_crowd_agent_id{};
-  bool enabled{true};
+  std::optional<detour::CrowdAgent> detour_crowd_agent{};
 };

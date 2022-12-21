@@ -8,6 +8,11 @@ using namespace godot;
     ERR_PRINT("'DetourCrowdAgent' Not initialized"); \
     return x;                                        \
   }
+#define RETURN_IF_DISABLED(x) \
+  if (not is_enabled())       \
+  {                           \
+    return x;                 \
+  }
 
 void DetourCrowdAgent::_register_methods()
 {
@@ -107,26 +112,25 @@ bool DetourCrowdAgent::initialize(
   detour_crowd_ref->connect("updated", this, "on_crowd_updated");
   detour_navigation_mesh_ref = detour_crowd_ref->get_detour_navigation_mesh_ref();
   detour_crowd = std::move(a_detour_crowd);
-  const_detour_crowd_agent = detour_crowd->ref().getAgent(agent_id);
-  detour_crowd_agent = detour_crowd->ref().getEditableAgent(agent_id);
-  detour_crowd_agent_id = agent_id;
+  detour_crowd_agent.emplace(
+      agent_id,
+      *detour_crowd->ref().getAgent(agent_id),
+      *detour_crowd->ref().getEditableAgent(agent_id));
 
   return true;
 }
 
-void DetourCrowdAgent::enable()
+bool DetourCrowdAgent::enable()
 {
-  RETURN_IF_UNINITIALIZED();
+  RETURN_IF_UNINITIALIZED(false);
 }
 
 void DetourCrowdAgent::disable()
 {
   RETURN_IF_UNINITIALIZED();
-  if (enabled)
-  {
-    enabled = false;
-    detour_crowd->ref().removeAgent(detour_crowd_agent_id);
-  }
+  RETURN_IF_DISABLED();
+  detour_crowd->ref().removeAgent(detour_crowd_agent->id);
+  detour_crowd_agent.reset();
 }
 
 void DetourCrowdAgent::void_set_position(Vector3 position)
@@ -147,13 +151,14 @@ bool DetourCrowdAgent::set_position(Vector3 position)
 bool DetourCrowdAgent::set_position_with_extents(Vector3 position, Vector3 search_box_half_extents)
 {
   RETURN_IF_UNINITIALIZED(false);
+  RETURN_IF_DISABLED(false);
   if (position == Vector3::INF)
   {
     ERR_PRINT("Cannot set position to Vector3::INF");
     return false;
   }
-  dtCrowdAgentParams agent_params = const_detour_crowd_agent->params;
-  detour_crowd->ref().removeAgent(detour_crowd_agent_id);
+  dtCrowdAgentParams agent_params = detour_crowd_agent->cref.params;
+  detour_crowd->ref().removeAgent(detour_crowd_agent->id);
   Vector3 aligned_position;
   std::tie(aligned_position, std::ignore) =
       detour_navigation_mesh_ref->get_closest_point_and_poly_with_extents_quiet(
@@ -171,9 +176,10 @@ bool DetourCrowdAgent::set_position_with_extents(Vector3 position, Vector3 searc
     ERR_PRINT("Not implemented");
     return false;
   }
-  const_detour_crowd_agent = detour_crowd->ref().getAgent(agent_id);
-  detour_crowd_agent = detour_crowd->ref().getEditableAgent(agent_id);
-  detour_crowd_agent_id = agent_id;
+  detour_crowd_agent.emplace(
+      agent_id,
+      *detour_crowd->ref().getAgent(agent_id),
+      *detour_crowd->ref().getEditableAgent(agent_id));
   return true;
 }
 
@@ -190,9 +196,10 @@ bool DetourCrowdAgent::set_target(Vector3 target)
 bool DetourCrowdAgent::set_target_with_extents(Vector3 target, Vector3 search_box_half_extents)
 {
   RETURN_IF_UNINITIALIZED(false);
+  RETURN_IF_DISABLED(false);
   if (target == Vector3::INF)
   {
-    return detour_crowd->ref().resetMoveTarget(detour_crowd_agent_id);
+    return detour_crowd->ref().resetMoveTarget(detour_crowd_agent->id);
   }
   Vector3 aligned_target;
   dtPolyRef polygon;
@@ -204,42 +211,44 @@ bool DetourCrowdAgent::set_target_with_extents(Vector3 target, Vector3 search_bo
     return false;
   }
   return detour_crowd->ref().requestMoveTarget(
-      detour_crowd_agent_id, polygon, &aligned_target.coord[0]);
+      detour_crowd_agent->id, polygon, &aligned_target.coord[0]);
 }
 
 Vector3 DetourCrowdAgent::get_target() const
 {
   RETURN_IF_UNINITIALIZED(Vector3::INF);
-  if (const_detour_crowd_agent->targetState == DT_CROWDAGENT_TARGET_NONE)
+  RETURN_IF_DISABLED(Vector3::INF);
+  if (detour_crowd_agent->cref.targetState == DT_CROWDAGENT_TARGET_NONE)
   {
     return Vector3::INF;
   }
   return Vector3(
-      const_detour_crowd_agent->targetPos[0],
-      const_detour_crowd_agent->targetPos[1],
-      const_detour_crowd_agent->targetPos[2]);
+      detour_crowd_agent->cref.targetPos[0],
+      detour_crowd_agent->cref.targetPos[1],
+      detour_crowd_agent->cref.targetPos[2]);
 }
 
 Vector3 DetourCrowdAgent::get_position() const
 {
   RETURN_IF_UNINITIALIZED(Vector3::INF);
-  const float* position_raw = const_detour_crowd_agent->npos;
+  RETURN_IF_DISABLED(Vector3::INF);
+  const float* position_raw = detour_crowd_agent->cref.npos;
   return Vector3(position_raw[0], position_raw[1], position_raw[2]);
 }
 
 Vector3 DetourCrowdAgent::get_velocity() const
 {
   RETURN_IF_UNINITIALIZED(Vector3::INF);
-  const float* velocity_raw = const_detour_crowd_agent->vel;
+  RETURN_IF_DISABLED(Vector3::INF);
+  const float* velocity_raw = detour_crowd_agent->cref.vel; // TODO: check validity
   return Vector3(velocity_raw[0], velocity_raw[1], velocity_raw[2]);
 }
 
 int DetourCrowdAgent::get_state() const
 {
   RETURN_IF_UNINITIALIZED(State::UNINITIALIZED);
-  if (not enabled)
-    return State::DISABLED;
-  switch (const_detour_crowd_agent->state)
+  RETURN_IF_DISABLED(State::DISABLED);
+  switch (detour_crowd_agent->cref.state)
   {
     case DT_CROWDAGENT_STATE_INVALID:
       return State::INVALID;
@@ -255,8 +264,8 @@ int DetourCrowdAgent::get_state() const
 
 void DetourCrowdAgent::on_crowd_updated()
 {
-  if (detour_crowd_agent != nullptr &&
-      const_detour_crowd_agent->targetState == DT_CROWDAGENT_TARGET_VALID)
+  RETURN_IF_DISABLED();
+  if (detour_crowd_agent->cref.targetState == DT_CROWDAGENT_TARGET_VALID)
   {
     emit_signal("new_position", get_position());
     emit_signal("new_velocity", get_velocity());
